@@ -14,6 +14,7 @@ export const UPDATE_TEAMS = "@@check-ins/update_teams";
 export const UPDATE_MEMBER_PROFILES = "@@check-ins/update_member_profiles";
 export const UPDATE_TEAM_MEMBERS = "@@check-ins/update_team_members";
 export const UPDATE_SELECTED_PROFILE = "@@check-ins/update_selected_profile";
+export const UPDATE_TEAM_MEMBER = "@@check-ins/update_team_member";
 
 const AppContext = React.createContext();
 
@@ -37,11 +38,23 @@ const reducer = (state, action) => {
     case UPDATE_TOAST:
       state.toast = action.payload;
       break;
+      case UPDATE_TEAM: 
+      const team = action.payload
+      state.teams[team.id] = team
+      break;
     case UPDATE_TEAMS:
+      const hasJes = action.payload[0].teamMembers.some((member) =>
+        member.name.startsWith("Jesse")
+      );
+      console.log(hasJes);
       state.teams = action.payload;
       break;
     case UPDATE_MEMBER_PROFILES:
       state.memberProfiles = action.payload;
+      break;
+    case UPDATE_TEAM_MEMBER:
+      const member = action.payload;
+      state.memberProfiles[member.id] = member;
       break;
     case UPDATE_TEAM_MEMBERS:
       state.teamMembers = action.payload;
