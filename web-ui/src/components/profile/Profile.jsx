@@ -5,6 +5,7 @@ import CancelIcon from "@material-ui/icons/Cancel";
 import Avatar from "@material-ui/core/Avatar";
 import { AppContext, UPDATE_USER_BIO } from "../../context/AppContext";
 import Search from "./Search";
+import {updateMember} from '../../api/member';
 import { getSkills, getSkill, createSkill } from "../../api/skill.js";
 import {
   getMemberSkills,
@@ -137,6 +138,9 @@ const Profile = () => {
       type: UPDATE_USER_BIO,
       payload: bio,
     });
+    const { memberProfile } = userProfile;
+    memberProfile.bio = bio;
+    updateMember(memberProfile);
   };
 
   const removeSkill = async (id) => {

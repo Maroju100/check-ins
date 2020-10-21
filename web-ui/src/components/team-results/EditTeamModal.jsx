@@ -18,14 +18,18 @@ const EditTeamModal = ({ team = {}, open, onSave, onClose }) => {
   const teamMemberOptions = memberProfiles;
 
   const updateTeamId = (isLead, oldTeam, newTeam) => {
-    let memberIds = oldTeam.map((member) => member.id);
+    // Find the team members that are being added.
+    let memberIds = oldTeam.map(member => member.id);
     const newMembers = newTeam.filter(
-      (member) => !memberIds.includes(member.id)
+      member => !memberIds.includes(member.id)
     );
-    memberIds = newTeam.map((member) => member.id);
+
+    // Find the team members that are being removed.
+    memberIds = newTeam.map(member => member.id);
     const oldMembers = editedTeam.teamMembers.filter(
-      (member) => !memberIds.includes(member.id)
+      member => !memberIds.includes(member.id)
     );
+
     let list = isLead ? editedTeam.teamLeads : editedTeam.teamMembers;
     let member;
     if (newMembers.length > 0) {
@@ -37,31 +41,26 @@ const EditTeamModal = ({ team = {}, open, onSave, onClose }) => {
       member.teamid = null;
       list = list.filter((m) => m.id !== member.id);
     }
-    setTeam(editedTeam);
-    dispatch({ type: UPDATE_TEAM_MEMBER, payload: member });
-    dispatch({ type: UPDATE_TEAM, payload: editedTeam });
+
+    setTeam({ ...editedTeam });
+
+    //dispatch({ type: UPDATE_TEAM_MEMBER, payload: member });
+    //dispatch({ type: UPDATE_TEAM, payload: editedTeam });
+
     return member;
   };
 
-  const onLeadsChange = (event, newValue) => {
-    const member = updateTeamId(true, editedTeam.teamLeads, newValue);
+  const onLeadsChange = (event, teamLeads) => {
+    const member = updateTeamId(true, editedTeam.teamLeads, teamLeads);
     member.lead = true;
-    setTeam({
-      ...editedTeam,
-      teamLeads: newValue,
-    });
+    setTeam({...editedTeam, teamLeads});
   };
 
-  const onTeamMembersChange = (event, newValue) => {
-    const member = updateTeamId(false, editedTeam.teamMembers, newValue);
+  const onTeamMembersChange = (event, teamMembers) => {
+    const member = updateTeamId(false, editedTeam.teamMembers, teamMembers);
     member.lead = false;
-    setTeam({
-      ...editedTeam,
-      teamMembers: newValue,
-    });
+    setTeam({...editedTeam, teamMembers});
   };
-
-  // console.log({ editedTeam, team });
 
   return (
     <Modal
@@ -130,13 +129,7 @@ const EditTeamModal = ({ team = {}, open, onSave, onClose }) => {
           <Button onClick={onClose} color="secondary">
             Cancel
           </Button>
-          <Button
-            onClick={() => {
-              console.log({ editedTeam });
-              onSave(editedTeam);
-            }}
-            color="primary"
-          >
+          <Button onClick={() => onSave(editedTeam)} color="primary">
             Save Team
           </Button>
         </div>

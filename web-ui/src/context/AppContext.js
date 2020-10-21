@@ -1,80 +1,76 @@
-import React, { useEffect, useReducer, useMemo } from "react";
-import { getCurrentUser, updateMember, getAllMembers } from "../api/member";
-import { getAllTeamMembers } from "../api/team";
-import { getCheckinByMemberId, createCheckin } from "../api/checkins";
+import React, {useEffect, useReducer, useMemo} from 'react';
+import {getCurrentUser, getAllMembers} from '../api/member';
+import {getAllTeamMembers} from '../api/team';
+import {getCheckinByMemberId, createCheckin} from '../api/checkins';
 
-export const MY_PROFILE_UPDATE = "@@check-ins/update_profile";
-export const UPDATE_USER_BIO = "@@check-ins/update_bio";
-export const UPDATE_CHECKINS = "@@check-ins/update_checkins";
-export const UPDATE_INDEX = "@@check-ins/update_index";
-export const UPDATE_TOAST = "@@check-ins/update_toast";
-export const UPDATE_CURRENT_CHECKIN = "@@check-ins/update_current_checkin";
-export const UPDATE_TEAM = "@@check-ins/update_team";
-export const UPDATE_TEAMS = "@@check-ins/update_teams";
-export const UPDATE_MEMBER_PROFILES = "@@check-ins/update_member_profiles";
-export const UPDATE_TEAM_MEMBERS = "@@check-ins/update_team_members";
-export const UPDATE_SELECTED_PROFILE = "@@check-ins/update_selected_profile";
-export const UPDATE_TEAM_MEMBER = "@@check-ins/update_team_member";
+export const MY_PROFILE_UPDATE = '@@check-ins/update_profile';
+export const UPDATE_USER_BIO = '@@check-ins/update_bio';
+export const UPDATE_CHECKINS = '@@check-ins/update_checkins';
+export const UPDATE_INDEX = '@@check-ins/update_index';
+export const UPDATE_TOAST = '@@check-ins/update_toast';
+export const UPDATE_CURRENT_CHECKIN = '@@check-ins/update_current_checkin';
+export const UPDATE_TEAM = '@@check-ins/update_team';
+export const UPDATE_TEAMS = '@@check-ins/update_teams';
+export const UPDATE_MEMBER_PROFILES = '@@check-ins/update_member_profiles';
+export const UPDATE_TEAM_MEMBERS = '@@check-ins/update_team_members';
+export const UPDATE_SELECTED_PROFILE = '@@check-ins/update_selected_profile';
+export const UPDATE_TEAM_MEMBER = '@@check-ins/update_team_member';
 
 const AppContext = React.createContext();
 
 const reducer = (state, action) => {
   switch (action.type) {
     case MY_PROFILE_UPDATE:
-      state.userProfile = action.payload;
-      break;
+      return {...state, userProfile: action.payload};
     case UPDATE_USER_BIO:
-      state.userProfile.memberProfile.bioText = action.payload;
-      updateMember(state.userProfile.memberProfile);
-      break;
-    case UPDATE_CHECKINS:
-      state.checkins = action.payload;
+      const {userProfile} = state;
+      userProfile.memberProfile.bioText = action.payload;
+      return {...state};
+    case UPDATE_CHECKINS: {
+      const checkins = action.payload;
       //sort by date
-      state.checkins.sort(function (a, b) {
-        return new Date(...a.checkInDate) - new Date(...b.checkInDate);
-      });
-      state.currentCheckin = state.checkins[state.checkins.length - 1];
-      break;
-    case UPDATE_TOAST:
-      state.toast = action.payload;
-      break;
-      case UPDATE_TEAM: 
-      const team = action.payload
-      state.teams[team.id] = team
-      break;
-    case UPDATE_TEAMS:
-      const hasJes = action.payload[0].teamMembers.some((member) =>
-        member.name.startsWith("Jesse")
+      checkins.sort(
+        (a, b) => new Date(...a.checkInDate) - new Date(...b.checkInDate)
       );
-      console.log(hasJes);
-      state.teams = action.payload;
-      break;
+      const currentCheckin = checkins[checkins.length - 1];
+      return {...state, checkins, currentCheckin};
+    }
+    case UPDATE_TOAST:
+      return {...state, toast: action.payload};
+    case UPDATE_TEAM: {
+      const team = action.payload;
+      const newTeams = [...state.teams];
+      newTeams[team.id] = team;
+      return {...state, teams: newTeams};
+    }
+    case UPDATE_TEAMS:
+      console.log('AppContext.js reducer: action.payload =', action.payload);
+      return {...state, teams: action.payload};
     case UPDATE_MEMBER_PROFILES:
-      state.memberProfiles = action.payload;
-      break;
+      return {...state, memberProfiles: action.payload};
     case UPDATE_TEAM_MEMBER:
       const member = action.payload;
-      state.memberProfiles[member.id] = member;
-      break;
+      const newState = {...state};
+      newState.memberProfiles[member.id] = member;
+      return newState;
     case UPDATE_TEAM_MEMBERS:
-      state.teamMembers = action.payload;
-      break;
+      return {...state, teamMembers: action.payload};
     case UPDATE_CURRENT_CHECKIN:
-      state.currentCheckin = action.payload;
-      break;
-    case UPDATE_SELECTED_PROFILE:
-      const { payload } = action;
+      return {...state, currentCheckin: action.payload};
+    case UPDATE_SELECTED_PROFILE: {
+      const newState = {...state};
+      const {payload} = action;
       if (state.selectedProfile !== payload) {
-        state.selectedProfile = payload;
-        state.currentCheckin = payload ? payload.checkIn : {};
+        newState.selectedProfile = payload;
+        newState.currentCheckin = payload ? payload.checkIn : {};
       }
-      if (payload === undefined) {
-        state.checkins = [];
-      }
-      break;
+      if (payload === undefined) newState.checkins = [];
+      return newState;
+    }
     default:
+      return state;
   }
-  return { ...state };
+  //return {...state};
 };
 
 const initialState = {
@@ -85,10 +81,10 @@ const initialState = {
   index: 0,
   selectedProfile: undefined,
   toast: {
-    severity: "",
-    toast: "",
+    severity: '',
+    toast: ''
   },
-  userProfile: undefined,
+  userProfile: undefined
 };
 
 const getCheckins = async (id, pdlId, date, dispatch) => {
@@ -98,7 +94,7 @@ const getCheckins = async (id, pdlId, date, dispatch) => {
       ? res.payload.data
       : null;
   if (data && data.length > 0) {
-    const allComplete = data.every((checkin) => checkin.completed === true);
+    const allComplete = data.every(checkin => checkin.completed === true);
     if (allComplete) {
       const prevCheckinDate = data[data.length - 1].checkInDate;
       if (pdlId) {
@@ -106,7 +102,7 @@ const getCheckins = async (id, pdlId, date, dispatch) => {
           teamMemberId: id,
           pdlId: pdlId,
           checkInDate: date(3, prevCheckinDate),
-          completed: false,
+          completed: false
         });
         const checkin =
           res.payload && res.payload.data && !res.error
@@ -121,17 +117,17 @@ const getCheckins = async (id, pdlId, date, dispatch) => {
         teamMemberId: id,
         pdlId: pdlId,
         checkInDate: date(1),
-        completed: false,
+        completed: false
       });
       const checkin =
         res.payload && res.payload.data && !res.error ? res.payload.data : null;
       data = [checkin];
     }
   }
-  dispatch({ type: UPDATE_CHECKINS, payload: data });
+  dispatch({type: UPDATE_CHECKINS, payload: data});
 };
 
-const AppContextProvider = (props) => {
+const AppContextProvider = props => {
   const [state, dispatch] = useReducer(reducer, initialState);
   const memberProfile =
     state && state.userProfile && state.userProfile.memberProfile
@@ -152,7 +148,7 @@ const AppContextProvider = (props) => {
           : undefined;
 
       if (profile) {
-        dispatch({ type: MY_PROFILE_UPDATE, payload: profile });
+        dispatch({type: MY_PROFILE_UPDATE, payload: profile});
       }
     }
     updateUserProfile();
@@ -185,9 +181,10 @@ const AppContextProvider = (props) => {
         res.payload && res.payload.data && !res.error
           ? res.payload.data
           : undefined;
+      console.log('AppContext getMemberProfiles: profiles =', profiles);
 
       if (profiles) {
-        dispatch({ type: UPDATE_MEMBER_PROFILES, payload: profiles });
+        dispatch({type: UPDATE_MEMBER_PROFILES, payload: profiles});
       }
     }
     getMemberProfiles();
@@ -200,9 +197,10 @@ const AppContextProvider = (props) => {
         res.payload && res.payload.data && !res.error
           ? res.payload.data
           : undefined;
+      console.log('AppContext getMemberProfiles: teamMembers =', teamMembers);
 
       if (teamMembers) {
-        dispatch({ type: UPDATE_TEAM_MEMBERS, payload: teamMembers });
+        dispatch({type: UPDATE_TEAM_MEMBERS, payload: teamMembers});
       }
     }
     getTeamMembers();
@@ -221,7 +219,7 @@ const AppContextProvider = (props) => {
   }, [selectedId, id]);
 
   const value = useMemo(() => {
-    return { state, dispatch };
+    return {state, dispatch};
   }, [state]);
   return (
     <AppContext.Provider value={props.value || value}>
@@ -230,7 +228,7 @@ const AppContextProvider = (props) => {
   );
 };
 
-const selectProfileMap = ({ memberProfiles }) => {
+const selectProfileMap = ({memberProfiles}) => {
   if (memberProfiles && memberProfiles.length) {
     memberProfiles = memberProfiles.reduce((mappedById, profile) => {
       mappedById[profile.id] = profile;
@@ -240,20 +238,20 @@ const selectProfileMap = ({ memberProfiles }) => {
   return memberProfiles;
 };
 
-const selectMembersByTeamId = ({ teamMembers }) => (id) => {
+const selectMembersByTeamId = ({teamMembers}) => id => {
   let members = [];
   if (teamMembers && teamMembers.length) {
-    members = teamMembers.filter((member) => member.teamid === id);
+    members = teamMembers.filter(member => member.teamid === id);
   }
   return members;
 };
 
-const selectMemberProfilesByTeamId = (state) => (id) =>
-  selectMembersByTeamId(state)(id).map((member) => {
-    return { ...selectProfileMap(state)[member.memberid], ...member };
+const selectMemberProfilesByTeamId = state => id =>
+  selectMembersByTeamId(state)(id).map(member => {
+    return {...selectProfileMap(state)[member.memberid], ...member};
   });
 
 AppContext.selectProfileById = selectProfileMap;
 AppContext.selectMemberProfilesByTeamId = selectMemberProfilesByTeamId;
 
-export { AppContext, AppContextProvider };
+export {AppContext, AppContextProvider};

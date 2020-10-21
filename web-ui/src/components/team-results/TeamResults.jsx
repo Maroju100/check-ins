@@ -19,12 +19,14 @@ const propTypes = {
 const displayName = "TeamResults";
 
 const TeamResults = () => {
-  const { state, dispatch } = useContext(AppContext);
+  const { dispatch, state } = useContext(AppContext);
   const [teams, setTeams] = useState([]);
 
+  // Every time the state changes, get team data from the database
+  // and populate them with the correct leads and members.
   useEffect(() => {
-    console.log("using effect");
     async function getTeams() {
+      console.log('TeamResults.jsx useEffect: calling getAllTeams');
       let res = await getAllTeams();
       let data =
         res.payload &&
@@ -33,36 +35,53 @@ const TeamResults = () => {
         !res.error
           ? res.payload.data
           : null;
+      console.log('TeamResults useEffect: data =', data);
       if (data) {
-        //dispatch({ type: UPDATE_TEAMS, payload: data });
-        console.log(data);
-        // for(const team of data) {
-        //     team.teamLeads =
-        // }
+        const { memberProfiles, teamMembers } = state;
+
+        const membersById = {};
+        for (const profile of memberProfiles) {
+          membersById[profile.id] = profile;
+        }
+
+        const membersByTeamId = {};
+        for (const teamMember of teamMembers) {
+          const { memberid, teamid } = teamMember;
+          let members = membersByTeamId[teamid];
+          if (!members) membersByTeamId[teamid] = members = [];
+          const member = membersById[memberid];
+          members.push(member);
+        }
+
+        for (const team of data) {
+          const allMembers = membersByTeamId[team.id];
+          team.teamLeads = allMembers.filter(m => m.lead);
+          team.teamMembers = allMembers.filter(m => !m.lead);
+        }
+        console.log('TeamResults useEffect: data =', data);
         setTeams(data);
       }
     }
-    getTeams();
-  }, [setTeams]);
+
+    const { memberProfiles = [], teamMembers = [] } = state;
+    if (memberProfiles.length && teamMembers.length) getTeams();
+  }, [state]);
 
   const updateTeam = (updatedTeam) => {
-    console.log("updating");
-    console.log(updatedTeam);
-    const index = teams.findIndex((team) => team.id === updatedTeam.id);
     const newTeams = [...teams];
-    newTeams[index] = updatedTeam;
+    newTeams[index] = { ...updatedTeam };
     setTeams(newTeams);
+    const t = newTeams.find(t => t.name === 'Micronaut Genii');
+    console.log('TeamResults updateTeam: Micronaut Genii =', JSON.stringify(t, null, 2));
     dispatch({ type: UPDATE_TEAMS, payload: newTeams });
   };
 
-  console.log({ teams });
-
   return (
     <Container maxWidth="md">
-      {teams.map((team) => (
+      {teams.map(team => (
         <TeamSummaryCard
           key={`team-summary-${team.id}`}
-          team={team}
+          team={{ ...team }}
           handleUpdate={updateTeam}
         />
       ))}

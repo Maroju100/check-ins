@@ -24,94 +24,58 @@ const displayName = "TeamSummaryCard";
 
 const TeamSummaryCard = ({ team, handleUpdate }) => {
   const { state } = useContext(AppContext);
-
   const { userProfile } = state;
-
-  let teamMembers = AppContext.selectMemberProfilesByTeamId(state)(team.id);
-
-  team.teamLeads =
-    teamMembers == null
-      ? null
-      : teamMembers.filter((teamMember) => teamMember.lead);
-  team.teamMembers =
-    teamMembers == null
-      ? null
-      : teamMembers.filter((teamMember) => !teamMember.lead);
-  console.log("team summary card", JSON.stringify(team.teamMembers));
+  const [time, setTime] = useState(Date.now());
 
   const [open, setOpen] = useState(false);
-
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
+  // For debugging
+  //if (team.name !== 'Micronaut Genii') return null;
+
   const formatMember = (member, isLead) => {
-    if (!member.memberid) {
-      member.memberid = member.id;
-    }
+    if (!member.memberid) member.memberid = member.id;
     member.lead = isLead;
     return member;
   };
 
-  const handleSave = (editedTeam) => {
-    console.log("handleSave", JSON.stringify(editedTeam));
+  const handleSave = async (team) => {
     setOpen(false);
-    if (editedTeam) {
-      let postBody = {
-        name: editedTeam.name,
-        description: editedTeam.description,
-        teamMembers: [
-          ...editedTeam.teamMembers.map((member) =>
-            formatMember(member, false)
-          ),
-          ...editedTeam.teamLeads.map((lead) => formatMember(lead, true)),
-        ],
-        id: editedTeam.id,
-      };
-      //   editedTeam.teamMembers = [
-      //     ...editedTeam.teamMembers,
-      //     ...editedTeam.teamLeads,
-      //   ];
-      updateTeam(postBody);
-      //   team = editedTeam;
-      //   teamMembers = AppContext.selectMemberProfilesByTeamId(state)(
-      //     editedTeam.id
-      //   );
-      //   editedTeam.teamLeads =
-      //     teamMembers == null
-      //       ? null
-      //       : teamMembers.filter((teamMember) => teamMember.lead);
-      //   editedTeam.teamMembers =
-      //     teamMembers == null
-      //       ? null
-      //       : teamMembers.filter((teamMember) => !teamMember.lead);
-      console.log("handleSave", JSON.stringify(editedTeam));
-      handleUpdate(editedTeam);
-    }
+
+    const postBody = {
+      name: team.name,
+      description: team.description,
+      teamMembers: [
+        ...team.teamMembers.map((member) => formatMember(member, false)),
+        ...team.teamLeads.map((lead) => formatMember(lead, true)),
+      ],
+      id: team.id,
+    };
+    await updateTeam(postBody);
+
+    handleUpdate(team);
+    setTime(Date.now());
   };
 
   const userCanEdit = () => {
-    const leads = teamMembers.filter((teamMember) => teamMember.lead);
+    const leads = team.teamMembers.filter((teamMember) => teamMember.lead);
     const thisUserLead = leads.filter((lead) =>
       userProfile ? lead.memberid === userProfile.memberProfile.id : false
     );
 
     const isLead = thisUserLead.length > 0;
-    if (
-      userProfile &&
-      userProfile.role &&
-      (userProfile.role.includes("ADMIN") || isLead)
-    ) {
-      return true;
-    }
-
-    return false;
+    return userProfile && userProfile.role &&
+      (userProfile.role.includes("ADMIN") || isLead);
   };
+
 
   return (
     <Card>
+      <div>time = {time}</div>
       <CardHeader title={team.name} subheader={team.description} />
       <CardContent>
-        {teamMembers == null ? (
+        {!team.teamMembers ? (
           <React.Fragment>
             <Skeleton />
             <Skeleton />
@@ -119,18 +83,10 @@ const TeamSummaryCard = ({ team, handleUpdate }) => {
         ) : (
           <React.Fragment>
             <strong>Team Leads: </strong>
-            {team.teamLeads.map((lead, index) => {
-              return index !== team.teamLeads.length - 1
-                ? `${lead.name}, `
-                : lead.name;
-            })}
+            {team.teamLeads.map(member => member.name).join(', ')}
             <br />
             <strong>Team Members: </strong>
-            {team.teamMembers.map((member, index) => {
-              return index !== team.teamMembers.length - 1
-                ? `${member.name}, `
-                : member.name;
-            })}
+            {team.teamMembers.map(member => member.name).join(', ')}
           </React.Fragment>
         )}
       </CardContent>
