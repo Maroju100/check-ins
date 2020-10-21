@@ -69,6 +69,7 @@ const TeamResults = () => {
 
   const updateTeam = (updatedTeam) => {
     const newTeams = [...teams];
+    const index = teams.findIndex(team => team.id === updatedTeam.id);
     newTeams[index] = { ...updatedTeam };
     setTeams(newTeams);
     const t = newTeams.find(t => t.name === 'Micronaut Genii');
