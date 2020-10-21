@@ -15,4 +15,4 @@ out/
 .classpath
 node_modules
 .run
-./runCheckins # script with private key
+runCheckins
