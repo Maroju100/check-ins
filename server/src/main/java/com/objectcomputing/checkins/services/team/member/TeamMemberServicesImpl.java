@@ -28,7 +28,7 @@ public class TeamMemberServicesImpl implements TeamMemberServices {
     public TeamMember save(TeamMember teamMember) {
         TeamMember teamMemberRet = null;
         if (teamMember != null) {
-            final UUID teamId = teamMember.getTeamid();
+            final UUID teamId = null;//teamMember.getTeamid();
             final UUID memberId = teamMember.getMemberid();
             if (teamId == null || memberId == null) {
                 throw new TeamBadArgException(String.format("Invalid teamMember %s", teamMember));
@@ -38,10 +38,10 @@ public class TeamMemberServicesImpl implements TeamMemberServices {
                 throw new TeamBadArgException(String.format("Team %s doesn't exist", teamId));
             } else if (!memberRepo.findById(memberId).isPresent()) {
                 throw new TeamBadArgException(String.format("Member %s doesn't exist", memberId));
-            } else if (teamMemberRepo.findByTeamidAndMemberid(teamMember.getTeamid(),
+            /*} else if (teamMemberRepo.findByTeamidAndMemberid(teamMember.getTeamid(),
                     teamMember.getMemberid()).isPresent()) {
                 throw new TeamBadArgException(String.format("Member %s already exists in team %s", memberId, teamId));
-            }
+            */}
 
             teamMemberRet = teamMemberRepo.save(teamMember);
         }
@@ -56,7 +56,7 @@ public class TeamMemberServicesImpl implements TeamMemberServices {
         TeamMember teamMemberRet = null;
         if (teamMember != null) {
             final UUID id = teamMember.getId();
-            final UUID teamId = teamMember.getTeamid();
+            final UUID teamId = null;//teamMember.getTeamid();
             final UUID memberId = teamMember.getMemberid();
             if (teamId == null || memberId == null) {
                 throw new TeamBadArgException(String.format("Invalid teamMember %s", teamMember));
@@ -77,12 +77,12 @@ public class TeamMemberServicesImpl implements TeamMemberServices {
         Set<TeamMember> teamMembers = new HashSet<>();
         teamMemberRepo.findAll().forEach(teamMembers::add);
 
-        if (teamid != null) {
+        /*if (teamid != null) {
             teamMembers.retainAll(teamMemberRepo.findByTeamid(teamid));
         }
         if (memberid != null) {
             teamMembers.retainAll(teamMemberRepo.findByMemberid(memberid));
-        }
+        }*/
         if (lead != null) {
             teamMembers.retainAll(teamMemberRepo.findByLead(lead));
         }
@@ -92,6 +92,6 @@ public class TeamMemberServicesImpl implements TeamMemberServices {
 
     @Override
     public void clearTeam(UUID teamid) {
-        teamMemberRepo.deleteByTeamid(teamid);
+        //teamMemberRepo.deleteByTeamid(teamid);
     }
 }

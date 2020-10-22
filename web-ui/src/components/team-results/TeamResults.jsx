@@ -2,7 +2,7 @@ import React, { useEffect, useContext, useState } from 'react';
 import PropTypes from 'prop-types';
 import Container from '@material-ui/core/Container';
 import TeamSummaryCard from './TeamSummaryCard';
-import { AppContext } from '../../context/AppContext';
+import { AppContext, UPDATE_TEAMS } from '../../context/AppContext';
 import { getAllTeams } from '../../api/team';
 import './TeamResults.css'
 
@@ -17,7 +17,7 @@ const propTypes = {
 const displayName = "TeamResults";
 
 const TeamResults = () => {
-    const { state } = useContext(AppContext);
+    const { state, dispatch } = useContext(AppContext);
     const [ teams, setTeams ] = useState([]);
 
     useEffect(() => {
@@ -40,22 +40,17 @@ const TeamResults = () => {
         getTeams();
     }, [setTeams]);
 
-    const updateTeam = (updatedTeam) => {
+    const updateTeam = (updatedTeams) => {
         console.log("updating");
-        console.log(updatedTeam);
-        for (var i = 0; i < teams.length; i++) {
-            if (teams[i].id === updatedTeam.id) {
-                teams[i] = updatedTeam;
-            }
-        }
         console.log(teams);
-        setTeams(teams);
+        //setTeams(updatedTeams);
+        dispatch({ type: UPDATE_TEAMS, payload: updatedTeams });
     };
 
     return (
         <Container maxWidth="md">
-            {teams.map((team) => (
-                <TeamSummaryCard key={`team-summary-${team.id}`} team={team} handleUpdate={updateTeam} />
+            {teams.map((team, index) => (
+                <TeamSummaryCard key={`team-summary-${team.id}`} index={index} teams={teams} handleUpdate={updateTeam} />
             ))}
         </Container>
     )

@@ -16,11 +16,12 @@ const propTypes = {
 
 const displayName = "TeamSummaryCard";
 
-const TeamSummaryCard = ({ team, handleUpdate }) => {
+const TeamSummaryCard = ({teams, index, handleUpdate }) => {
 
     const {state} = useContext(AppContext);
 
     const { userProfile } = state;
+    let team = teams[index];
 
     let teamMembers = AppContext.selectMemberProfilesByTeamId(state)(team.id);
 
@@ -40,6 +41,8 @@ const TeamSummaryCard = ({ team, handleUpdate }) => {
     };
 
     const handleClose = (alteredTeam) => {
+        console.log("handling close");
+        console.log(alteredTeam);
         setOpen(false);
         if (alteredTeam) {
             let postBody = {
@@ -49,13 +52,21 @@ const TeamSummaryCard = ({ team, handleUpdate }) => {
                     ...alteredTeam.teamLeads.map((lead) => formatMember(lead, true))],
                 id: alteredTeam.id,
             }
-            alteredTeam.teamMembers = [...alteredTeam.teamMembers, ...alteredTeam.teamLeads];
+            //alteredTeam.teamMembers = [...alteredTeam.teamMembers, ...alteredTeam.teamLeads];
+            console.log(postBody);
             updateTeam(postBody);
-            team = alteredTeam;
-            teamMembers = AppContext.selectMemberProfilesByTeamId(state)(team.id);
-            team.teamLeads = teamMembers == null ? null : teamMembers.filter((teamMember) => teamMember.lead);
-            team.teamMembers = teamMembers == null ? null : teamMembers.filter((teamMember) => !teamMember.lead);
-            handleUpdate(team);
+            //teamMembers = AppContext.selectMemberProfilesByTeamId(state)(team.id);
+            //team.teamLeads = teamMembers == null ? null : teamMembers.filter((teamMember) => teamMember.lead);
+            //team.teamMembers = teamMembers == null ? null : teamMembers.filter((teamMember) => !teamMember.lead);
+            console.log(alteredTeam);
+            console.log(index);
+            teams[index] = alteredTeam;
+            teams[index].teamLeads = alteredTeam.teamLeads;
+            teams[index].teamMembers = alteredTeam.teamMembers;
+            console.log(teams[index]);
+            console.log(teams);
+            //setTeams(teams);
+            handleUpdate(teams);
             console.log(team);
         }
     };
@@ -65,7 +76,7 @@ const TeamSummaryCard = ({ team, handleUpdate }) => {
         const thisUserLead = leads.filter((lead) => userProfile ? lead.memberid === userProfile.memberProfile.id : false);
 
         const isLead = thisUserLead.length > 0;
-        if (userProfile && userProfile.role && (userProfile.role.includes("ADMIN") || isLead)) {
+        if ((userProfile && userProfile.role && (userProfile.role.includes("ADMIN") || userProfile.role.includes("SUPER")) || isLead) {
             return true;
         }
 

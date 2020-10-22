@@ -1,21 +1,25 @@
 package com.objectcomputing.checkins.services.team;
 
-import com.objectcomputing.checkins.services.team.member.TeamMember;
 import com.objectcomputing.checkins.services.team.member.TeamMemberRepository;
 
-import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
+import static com.objectcomputing.checkins.util.Util.nullSafeUUIDToString;
+
+@Singleton
 public class TeamServicesImpl implements TeamServices {
 
-    @Inject
-    private TeamRepository teamsRepo;
-    @Inject
-    private TeamMemberRepository teamMemberRepo;
+    private final TeamRepository teamsRepo;
+    private final TeamMemberRepository teamMemberRepository;
+
+    public TeamServicesImpl(TeamRepository teamsRepo,
+                            TeamMemberRepository teamMemberRepository) {
+        this.teamsRepo = teamsRepo;
+        this.teamMemberRepository = teamMemberRepository;
+    }
 
     public Team save(Team team) {
         Team newTeam = null;
@@ -51,16 +55,7 @@ public class TeamServicesImpl implements TeamServices {
     }
 
     public Set<Team> findByFields(String name, UUID memberid) {
-        Set<Team> teams = new HashSet<>();
-        teamsRepo.findAll().forEach(teams::add);
-        if (name != null) {
-            teams.retainAll(teamsRepo.findByNameIlike(name));
-        }
-        if (memberid != null) {
-            teams.retainAll(teamMemberRepo.findByMemberid(memberid)
-                    .stream().map(TeamMember::getTeamid).map(gid -> teamsRepo.findById(gid).orElse(null))
-                    .filter(Objects::nonNull).collect(Collectors.toSet()));
-        }
-        return teams;
+        return new HashSet<>(
+                teamsRepo.search(name, nullSafeUUIDToString(memberid)));
     }
 }

@@ -14,13 +14,9 @@ import java.util.UUID;
 @JdbcRepository(dialect = Dialect.POSTGRES)
 public interface TeamMemberRepository extends CrudRepository<TeamMember, UUID> {
 
-    List<TeamMember> findByTeamid(UUID teamid);
-
-    List<TeamMember> findByMemberid(UUID uuid);
-
     List<TeamMember> findByLead(Boolean aBoolean);
 
-    Optional<TeamMember> findByTeamidAndMemberid(UUID teamMemberid, UUID memberId);
+    //Optional<TeamMember> findByTeamidAndMemberid(UUID teamMemberid, UUID memberId);
 
     @Override
     <S extends TeamMember> List<S> saveAll(@Valid @NotNull Iterable<S> entities);
@@ -28,5 +24,5 @@ public interface TeamMemberRepository extends CrudRepository<TeamMember, UUID> {
     @Override
     <S extends TeamMember> S save(@Valid @NotNull @NonNull S entity);
 
-    void deleteByTeamid(UUID teamid);
+    //void deleteByTeamid(UUID teamid);
 }

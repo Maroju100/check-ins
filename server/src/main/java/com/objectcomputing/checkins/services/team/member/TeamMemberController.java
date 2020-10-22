@@ -119,7 +119,7 @@ public class TeamMemberController {
                 membersCreated.add(teamMember);
             } catch (TeamBadArgException e) {
                 errors.add(String.format("Member %s was not added to Team %s because: %s", teamMember.getMemberid(),
-                        teamMember.getTeamid(), e.getMessage()));
+                        teamMember.getTeam().getId(), e.getMessage()));
             }
         }
         if (errors.isEmpty()) {

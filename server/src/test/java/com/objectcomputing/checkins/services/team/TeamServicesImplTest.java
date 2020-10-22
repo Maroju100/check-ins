@@ -143,7 +143,7 @@ class TeamServicesImplTest {
         verify(teamRepository, times(1)).findAll();
         verify(teamRepository, never()).findById(any(UUID.class));
         verify(teamRepository, never()).findByNameIlike(any(String.class));
-        verify(teamMemberRepository, never()).findByMemberid(any(UUID.class));
+        //verify(teamMemberRepository, never()).findByMemberid(any(UUID.class));
     }
 
     @Test
@@ -161,7 +161,7 @@ class TeamServicesImplTest {
         verify(teamRepository, times(1)).findAll();
         verify(teamRepository, never()).findById(any(UUID.class));
         verify(teamRepository, times(1)).findByNameIlike(any(String.class));
-        verify(teamMemberRepository, never()).findByMemberid(any(UUID.class));
+        //verify(teamMemberRepository, never()).findByMemberid(any(UUID.class));
     }
 
     @Test
@@ -175,13 +175,13 @@ class TeamServicesImplTest {
         List<Team> teamToFind = List.of(team.get(0));
         when(teamRepository.findAll()).thenReturn(team);
         when(teamRepository.findById(eq(teamToFind.get(0).getId()))).thenReturn(Optional.of(teamToFind.get(0)));
-        when(teamMemberRepository.findByMemberid(eq(memberId))).thenReturn(Collections.singletonList(
-                new TeamMember(UUID.randomUUID(), teamToFind.get(0).getId(), memberId, true)));
+        //when(teamMemberRepository.findByMemberid(eq(memberId))).thenReturn(Collections.singletonList(
+        //        new TeamMember(UUID.randomUUID(), teamToFind.get(0).getId(), memberId, true)));
         assertEquals(new HashSet<>(teamToFind), services.findByFields(null, memberId));
         verify(teamRepository, times(1)).findAll();
         verify(teamRepository, times(1)).findById(any(UUID.class));
         verify(teamRepository, never()).findByNameIlike(any(String.class));
-        verify(teamMemberRepository, times(1)).findByMemberid(any(UUID.class));
+        //verify(teamMemberRepository, times(1)).findByMemberid(any(UUID.class));
     }
 
     @Test
@@ -197,12 +197,12 @@ class TeamServicesImplTest {
         when(teamRepository.findAll()).thenReturn(team);
         when(teamRepository.findByNameIlike(eq(nameSearch))).thenReturn(teamToFind);
         when(teamRepository.findById(eq(teamToFind.get(0).getId()))).thenReturn(Optional.of(teamToFind.get(0)));
-        when(teamMemberRepository.findByMemberid(eq(memberId))).thenReturn(Collections.singletonList(
-                new TeamMember(UUID.randomUUID(), teamToFind.get(0).getId(), memberId, true)));
+        //when(teamMemberRepository.findByMemberid(eq(memberId))).thenReturn(Collections.singletonList(
+        //        new TeamMember(UUID.randomUUID(), teamToFind.get(0).getId(), memberId, true)));
         assertEquals(new HashSet<>(teamToFind), services.findByFields(nameSearch, memberId));
         verify(teamRepository, times(1)).findAll();
         verify(teamRepository, times(1)).findById(any(UUID.class));
         verify(teamRepository, times(1)).findByNameIlike(any(String.class));
-        verify(teamMemberRepository, times(1)).findByMemberid(any(UUID.class));
+        //verify(teamMemberRepository, times(1)).findByMemberid(any(UUID.class));
     }
 }

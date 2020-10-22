@@ -1,6 +1,7 @@
 package com.objectcomputing.checkins.services.team;
 
 import com.objectcomputing.checkins.services.team.member.TeamMember;
+import com.objectcomputing.checkins.services.team.member.TeamMemberDTO;
 import com.objectcomputing.checkins.services.team.member.TeamMemberServices;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
@@ -21,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Controller("/services/team")
 @Secured(SecurityRule.IS_AUTHENTICATED)
@@ -54,10 +56,10 @@ public class TeamController {
      */
 
     @Post(value = "/")
-    public HttpResponse<Team> createATeam(@Body @Valid TeamCreateDTO team, HttpRequest<TeamCreateDTO> request) {
+    public HttpResponse<TeamResponseDTO> createATeam(@Body @Valid TeamCreateDTO team, HttpRequest<TeamCreateDTO> request) {
         Team newTeam = teamService.save(new Team(team.getName(), team.getDescription()));
         return HttpResponse
-                .created(newTeam)
+                .created(toDTOFromEntity(newTeam))
                 .headers(headers -> headers.location(URI.create(String.format("%s/%s", request.getUri(), newTeam.getId()))));
     }
 
@@ -98,8 +100,8 @@ public class TeamController {
      */
 
     @Get("/{id}")
-    public Team readTeam(UUID id) {
-        return teamService.read(id);
+    public TeamResponseDTO readTeam(UUID id) {
+        return toDTOFromEntity(teamService.read(id));
     }
 
     /**
@@ -112,8 +114,11 @@ public class TeamController {
      */
 
     @Get("/{?name,memberid}")
-    public Set<Team> findTeams(@Nullable String name, @Nullable UUID memberid) {
-        return teamService.findByFields(name, memberid);
+    public Set<TeamResponseDTO> findTeams(@Nullable String name, @Nullable UUID memberid) {
+        return teamService.findByFields(name, memberid)
+                .stream()
+                .map(this::toDTOFromEntity)
+                .collect(Collectors.toSet());
     }
 
     /**
@@ -125,21 +130,36 @@ public class TeamController {
     @Put("/")
     public HttpResponse<?> update(@Body @Valid TeamUpdateDTO team, HttpRequest<Team> request) {
         Team updatedTeam = teamService.update(toTeamEntityFromUpdateDTO(team));
-        teamMemberServices.clearTeam(team.getId());
+        /*teamMemberServices.clearTeam(team.getId());
         for (TeamMember member : team.getTeamMembers()) {
-            member.setTeamid(team.getId());
+            member.setTeam(updatedTeam);
             member.setId(null);
             teamMemberServices.save(member);
-        }
+        }*/
         return HttpResponse
                 .ok()
                 .headers(headers -> headers.location(URI.create(String.format("%s/%s", request.getUri(), team.getId()))))
-                .body(updatedTeam);
+                .body(toDTOFromEntity(updatedTeam));
 
     }
 
     private Team toTeamEntityFromUpdateDTO(TeamUpdateDTO dto) {
         return new Team(dto.getId(), dto.getName(), dto.getDescription());
+    }
+
+    private TeamResponseDTO toDTOFromEntity(Team entity) {
+        TeamResponseDTO dto = new TeamResponseDTO();
+        dto.setDescription(entity.getDescription());
+        dto.setName(entity.getName());
+        dto.setId(entity.getId());
+        dto.setTeamMembers(entity.getTeamMembers().stream().map(teamMember -> {
+            TeamMemberDTO memberDTO = new TeamMemberDTO();
+            memberDTO.setId(teamMember.getId());
+            memberDTO.setLead(teamMember.isLead());
+            memberDTO.setMemberid(teamMember.getMemberid());
+            return memberDTO;
+        }).collect(Collectors.toList()));
+        return dto;
     }
 
 }
