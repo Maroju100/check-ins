@@ -8,7 +8,7 @@ CREATE TABLE team (
 DROP TABLE IF EXISTS team_member;
 CREATE TABLE team_member (
   uuid varchar PRIMARY KEY,
-  teamId varchar REFERENCES team(uuid),
+  team_id varchar REFERENCES team(uuid),
   memberId varchar REFERENCES member_profile(uuid),
   isLead boolean default false
 );

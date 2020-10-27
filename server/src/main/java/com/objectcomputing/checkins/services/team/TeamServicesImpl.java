@@ -31,6 +31,7 @@ public class TeamServicesImpl implements TeamServices {
                 throw new TeamBadArgException(String.format("Team with name %s already exists", team.getName()));
             } else {
                 newTeam = teamsRepo.save(team);
+                newTeam.setTeamMembers(teamMemberRepository.saveAll(team.getTeamMembers()));
             }
         }
 
@@ -38,14 +39,19 @@ public class TeamServicesImpl implements TeamServices {
     }
 
     public Team read(UUID teamId) {
-        return teamId != null ? teamsRepo.findById(teamId).orElse(null) : null;
+        Team thisTeam = teamId != null ? teamsRepo.findById(teamId).orElse(null) : null;
+        //thisTeam.setTeamMembers(teamMemberRepository.findByTeamid(thisTeam.getId()));
+        return thisTeam;
     }
 
     public Team update(Team team) {
         Team newTeam = null;
         if (team != null) {
             if (team.getId() != null && teamsRepo.findById(team.getId()).isPresent()) {
+                //teamMemberRepository.deleteByTeamid(team.getId());
                 newTeam = teamsRepo.update(team);
+                newTeam.setTeamMembers(teamMemberRepository.saveAll(team.getTeamMembers()));
+
             } else {
                 throw new TeamBadArgException(String.format("Team %s does not exist, can't update.", team.getId()));
             }

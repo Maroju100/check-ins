@@ -27,8 +27,7 @@ public class TeamMember {
     @TypeDef(type = DataType.STRING)
     @Schema(description = "id of the team this entry is associated with", required = true)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "team_id", nullable = false)
-    //@Relation(value = Relation.Kind.MANY_TO_ONE)
+    @JoinColumn(name = "team_id")
     private Team team;
 
     @NotNull
@@ -55,6 +54,25 @@ public class TeamMember {
         this.lead = lead;
     }
 
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        TeamMember that = (TeamMember) o;
+        return Objects.equals(id, that.id) &&
+                //Objects.equals(teamid, that.teamid) &&
+                Objects.equals(team, that.team) &&
+                Objects.equals(memberid, that.memberid) &&
+                Objects.equals(lead, that.lead);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, team/*id*/, memberid, lead);
+    }
+
     public Team getTeam() {
         return team;
     }
@@ -62,6 +80,14 @@ public class TeamMember {
     public void setTeam(Team team) {
         this.team = team;
     }
+
+    /*public UUID getTeamid() {
+        return teamid;
+    }
+
+    public void setTeamid(UUID teamid) {
+        this.teamid = teamid;
+    }*/
 
     public UUID getId() {
         return id;
@@ -85,31 +111,5 @@ public class TeamMember {
 
     public void setLead(boolean lead) {
         this.lead = lead;
-    }
-
-    @Override
-    public String toString() {
-        return "TeamMember{" +
-                "id=" + id +
-                ", team=" + team +
-                ", memberid=" + memberid +
-                ", lead=" + lead +
-                '}';
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        TeamMember that = (TeamMember) o;
-        return Objects.equals(id, that.id) &&
-                Objects.equals(team, that.team) &&
-                Objects.equals(memberid, that.memberid) &&
-                Objects.equals(lead, that.lead);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, team, memberid, lead);
     }
 }

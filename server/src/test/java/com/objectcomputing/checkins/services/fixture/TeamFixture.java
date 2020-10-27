@@ -4,6 +4,7 @@ import com.objectcomputing.checkins.services.memberprofile.MemberProfile;
 import com.objectcomputing.checkins.services.team.Team;
 import com.objectcomputing.checkins.services.team.TeamUpdateDTO;
 import com.objectcomputing.checkins.services.team.member.TeamMember;
+import com.objectcomputing.checkins.services.team.member.TeamMemberDTO;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +22,9 @@ public interface TeamFixture extends RepositoryFixture{
         newDTO.setDescription("different description");
         newDTO.setTeamMembers(new ArrayList<>());
         for (MemberProfile member : members) {
-            TeamMember newTeamMember = new TeamMember(fromUUID, member.getId(), false);
+            TeamMemberDTO newTeamMember = new TeamMemberDTO();
+            newTeamMember.setMemberid(member.getId());
+            newTeamMember.setLead(false);
             newDTO.getTeamMembers().add(newTeamMember);
         }
         newDTO.getTeamMembers().get(0).setLead(true);

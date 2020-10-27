@@ -1,6 +1,7 @@
 package com.objectcomputing.checkins.services.team;
 
 import com.objectcomputing.checkins.services.team.member.TeamMember;
+import com.objectcomputing.checkins.services.team.member.TeamMemberDTO;
 import io.micronaut.core.annotation.Introspected;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -25,7 +26,7 @@ public class TeamUpdateDTO {
 
     @Schema(description = "members of this team")
     @NotEmpty
-    private List<TeamMember> teamMembers;
+    private List<TeamMemberDTO> teamMembers;
 
     @Override
     public String toString() {
@@ -61,11 +62,11 @@ public class TeamUpdateDTO {
         this.description = description;
     }
 
-    public List<TeamMember> getTeamMembers() {
+    public List<TeamMemberDTO> getTeamMembers() {
         return teamMembers;
     }
 
-    public void setTeamMembers(List<TeamMember> teamMembers) {
+    public void setTeamMembers(List<TeamMemberDTO> teamMembers) {
         this.teamMembers = teamMembers;
     }
 }

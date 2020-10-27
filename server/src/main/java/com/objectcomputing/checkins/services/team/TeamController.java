@@ -144,7 +144,13 @@ public class TeamController {
     }
 
     private Team toTeamEntityFromUpdateDTO(TeamUpdateDTO dto) {
-        return new Team(dto.getId(), dto.getName(), dto.getDescription());
+        Team entity = new Team(dto.getId(), dto.getName(), dto.getDescription());
+        List<TeamMember> entityMembers = new ArrayList<>();
+        for (TeamMemberDTO memberDTO : dto.getTeamMembers()) {
+            entityMembers.add(new TeamMember(memberDTO.getId(), memberDTO.getMemberid(), memberDTO.getLead()));
+        }
+        entity.setTeamMembers(entityMembers);
+        return entity;
     }
 
     private TeamResponseDTO toDTOFromEntity(Team entity) {

@@ -8,4 +8,4 @@ ALTER TABLE team_member
 RENAME COLUMN isLead TO lead;
 
 ALTER TABLE team_member
-ADD CONSTRAINT team_member_uniqueconstraint UNIQUE (teamid, memberid);
+ADD CONSTRAINT team_member_uniqueconstraint UNIQUE (team_id, memberid);
