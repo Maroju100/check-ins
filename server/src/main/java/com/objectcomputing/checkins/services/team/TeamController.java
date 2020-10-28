@@ -57,7 +57,12 @@ public class TeamController {
 
     @Post(value = "/")
     public HttpResponse<TeamResponseDTO> createATeam(@Body @Valid TeamCreateDTO team, HttpRequest<TeamCreateDTO> request) {
-        Team newTeam = teamService.save(new Team(team.getName(), team.getDescription()));
+        Team saveMe = new Team(team.getName(), team.getDescription());
+        saveMe.setTeamMembers(new ArrayList<>());
+        for (TeamMemberDTO memberDTO : team.getTeamMembers()) {
+            saveMe.getTeamMembers().add(new TeamMember(null, saveMe, memberDTO.getMemberid(), memberDTO.getLead()));
+        }
+        Team newTeam = teamService.save(saveMe);
         return HttpResponse
                 .created(toDTOFromEntity(newTeam))
                 .headers(headers -> headers.location(URI.create(String.format("%s/%s", request.getUri(), newTeam.getId()))));
@@ -147,24 +152,29 @@ public class TeamController {
         Team entity = new Team(dto.getId(), dto.getName(), dto.getDescription());
         List<TeamMember> entityMembers = new ArrayList<>();
         for (TeamMemberDTO memberDTO : dto.getTeamMembers()) {
-            entityMembers.add(new TeamMember(memberDTO.getId(), memberDTO.getMemberid(), memberDTO.getLead()));
+            entityMembers.add(new TeamMember(memberDTO.getId(), entity, memberDTO.getMemberid(), memberDTO.getLead()));
         }
         entity.setTeamMembers(entityMembers);
         return entity;
     }
 
     private TeamResponseDTO toDTOFromEntity(Team entity) {
+        if (entity == null) {
+            return null;
+        }
         TeamResponseDTO dto = new TeamResponseDTO();
         dto.setDescription(entity.getDescription());
         dto.setName(entity.getName());
         dto.setId(entity.getId());
-        dto.setTeamMembers(entity.getTeamMembers().stream().map(teamMember -> {
-            TeamMemberDTO memberDTO = new TeamMemberDTO();
-            memberDTO.setId(teamMember.getId());
-            memberDTO.setLead(teamMember.isLead());
-            memberDTO.setMemberid(teamMember.getMemberid());
-            return memberDTO;
-        }).collect(Collectors.toList()));
+        if (entity.getTeamMembers() != null) {
+            dto.setTeamMembers(entity.getTeamMembers().stream().map(teamMember -> {
+                TeamMemberDTO memberDTO = new TeamMemberDTO();
+                memberDTO.setId(teamMember.getId());
+                memberDTO.setLead(teamMember.isLead());
+                memberDTO.setMemberid(teamMember.getMemberid());
+                return memberDTO;
+            }).collect(Collectors.toList()));
+        }
         return dto;
     }
 

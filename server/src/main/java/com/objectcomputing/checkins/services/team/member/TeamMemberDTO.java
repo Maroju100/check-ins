@@ -16,12 +16,6 @@ public class TeamMemberDTO {
     private UUID id;
 
     @NotNull
-    @Schema(description = "id of the team this entry is associated with", required = true)
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "USER_ID", nullable = false)
-    private Team team;
-
-    @NotNull
     @Schema(description = "id of the member this entry is associated with", required = true)
     private UUID memberid;
 
@@ -36,14 +30,6 @@ public class TeamMemberDTO {
 
     public void setId(UUID id) {
         this.id = id;
-    }
-
-    public Team getTeam() {
-        return team;
-    }
-
-    public void setTeam(Team team) {
-        this.team = team;
     }
 
     public UUID getMemberid() {

@@ -27,7 +27,7 @@ public class TeamRepositoryTest extends TestContainersSuite implements TeamFixtu
     Team t1;
     Team t2;
 
-    //@BeforeEach TODO: when using this annotation instead of calling this method within the tests there is an error. Investigate why.
+    @BeforeEach
     public void before() {
         t1 = new Team("team1", "the first team");
         t2 = new Team("team2", "the second team");
@@ -47,11 +47,11 @@ public class TeamRepositoryTest extends TestContainersSuite implements TeamFixtu
     public void after() {
         getTeamMemberRepository().deleteAll();
         getTeamRepository().deleteAll();
+        getMemberProfileRepository().deleteAll();
     }
 
     @Test
     public void testUpdateNewMember() {
-        before();
         TeamMember tm1 = new TeamMember(pdl.getId(), true);
         TeamMember tm2 = new TeamMember(member.getId(), true);
         TeamMember tm3 = new TeamMember(unrelated.getId(), false);
@@ -70,16 +70,10 @@ public class TeamRepositoryTest extends TestContainersSuite implements TeamFixtu
 
         assertEquals(t1, actual);
 
-        for (int i = 0; i < actual.getTeamMembers().size(); i++) {
-            assertEquals(actual.getTeamMembers().get(i).getId(), t1.getTeamMembers().get(i).getId());
-            assertEquals(actual.getTeamMembers().get(i).getMemberid(), t1.getTeamMembers().get(i).getMemberid());
-        }
-
     }
 
     @Test
     public void testUpdate() {
-        before();
         TeamMember tm1 = new TeamMember(pdl.getId(), true);
         TeamMember tm2 = new TeamMember(member.getId(), true);
         t1.setTeamMembers(List.of(tm1, tm2));
@@ -97,7 +91,6 @@ public class TeamRepositoryTest extends TestContainersSuite implements TeamFixtu
 
     @Test
     public void testGetById() {
-        before();
         Team actual = getTeamRepository().findById(t1.getId()).get();
         assertEquals(t1, actual);
         assertEquals(actual.getTeamMembers().size(), t1.getTeamMembers().size());

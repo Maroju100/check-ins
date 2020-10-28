@@ -35,7 +35,8 @@ public class Team {
 
     @OneToMany(fetch = FetchType.EAGER,
             mappedBy = "team",
-            cascade = CascadeType.ALL)
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
     //@Relation(value = Relation.Kind.ONE_TO_MANY,
     //        cascade = Relation.Cascade.PERSIST,
     //        mappedBy = "team")

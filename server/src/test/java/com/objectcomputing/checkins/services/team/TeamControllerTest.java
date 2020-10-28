@@ -206,9 +206,9 @@ class TeamControllerTest extends TestContainersSuite implements TeamFixture, Mem
         Team team = createDefultTeam();
 
         final HttpRequest<?> request = HttpRequest.GET(String.format("/")).basicAuth(MEMBER_ROLE, MEMBER_ROLE);
-        final HttpResponse<Set<Team>> response = client.toBlocking().exchange(request, Argument.setOf(Team.class));
+        final HttpResponse<Set<TeamResponseDTO>> response = client.toBlocking().exchange(request, Argument.setOf(TeamResponseDTO.class));
 
-        assertEquals(Set.of(team), response.body());
+        assertEquals(Set.of(fromEntity(team)), response.body());
         assertEquals(HttpStatus.OK, response.getStatus());
 
     }

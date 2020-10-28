@@ -23,10 +23,10 @@ public class TeamMember {
     @Schema(description = "id of this member to team entry", required = true)
     private UUID id;
 
-    @NotNull
+    //@NotNull
     @TypeDef(type = DataType.STRING)
     @Schema(description = "id of the team this entry is associated with", required = true)
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = Team.class)
     @JoinColumn(name = "team_id")
     private Team team;
 
@@ -54,7 +54,12 @@ public class TeamMember {
         this.lead = lead;
     }
 
-
+    public TeamMember(UUID id, Team team, UUID memberid, Boolean lead) {
+        this.id = id;
+        this.team = team;
+        this.memberid = memberid;
+        this.lead = lead;
+    }
 
     @Override
     public boolean equals(Object o) {

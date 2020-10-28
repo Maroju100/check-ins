@@ -21,8 +21,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-@MicronautTest
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+//@MicronautTest
+//@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TeamMemberServicesImplTest {
 
     @Mock

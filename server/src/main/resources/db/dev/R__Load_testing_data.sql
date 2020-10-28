@@ -199,52 +199,52 @@ VALUES
     ('e545dfa1-a07d-4099-9a5b-ed14f07b87cc', 'PMO Superness', 'Excellent PMO Artists');
 
 INSERT INTO team_member
-    (id, teamid, memberid, lead)
+    (id, team_id, memberid, lead)
 VALUES
     ('d2ee49cb-9479-49fb-80d7-43c3c1b50f91', 'a8733740-cf4c-4c16-a8cf-4f928c409acc', '802cb1f5-a255-4236-8719-773fa53d79d9', true);
 
 INSERT INTO team_member
-    (id, teamid, memberid, lead)
+    (id, team_id, memberid, lead)
 VALUES
     ('0f299d11-df47-406f-a426-8e3160eaeb21', '036b95a5-357c-45bd-b60e-e8e2e1afec83', '8fa673c0-ca19-4271-b759-41cb9db2e83a', false);
 
 INSERT INTO team_member
-    (id, teamid, memberid, lead)
+    (id, team_id, memberid, lead)
 VALUES
     ('9e7e9577-a36b-4238-84cc-4f160ac60b40', 'e545dfa1-a07d-4099-9a5b-ed14f07b87cc', '2559a257-ae84-4076-9ed4-3820c427beeb', true);
 
 INSERT INTO team_member
-    (id, teamid, memberid, lead)
+    (id, team_id, memberid, lead)
 VALUES
     ('439ad8a8-500f-4f3f-963b-a86437d5820a', 'e545dfa1-a07d-4099-9a5b-ed14f07b87cc', '7a6a2d4e-e435-4ec9-94d8-f1ed7c779498', false);
 
 INSERT INTO team_member
-    (id, teamid, memberid, lead)
+    (id, team_id, memberid, lead)
 VALUES
     ('8eea2f65-160c-4db7-9f6d-f367acd333fb', 'e8f052a8-40b5-4fb4-9bab-8b16ed36adc7', '43ee8e79-b33d-44cd-b23c-e183894ebfef', false);
 
 INSERT INTO team_member
-    (id, teamid, memberid, lead)
+    (id, team_id, memberid, lead)
 VALUES
     ('c7b4d5e0-09ba-479a-8c40-ca9bbd8f217a', 'a8733740-cf4c-4c16-a8cf-4f928c409acc', '6884ab96-2275-4af9-89d8-ad84254d8759', false);
 
 INSERT INTO team_member
-    (id, teamid, memberid, lead)
+    (id, team_id, memberid, lead)
 VALUES
     ('20bf1ddb-53a0-436e-99dc-802c1199e282', 'a8733740-cf4c-4c16-a8cf-4f928c409acc', '67dc3a3b-5bfa-4759-997a-fb6bac98dcf3', false);
 
 INSERT INTO team_member
-    (id, teamid, memberid, lead)
+    (id, team_id, memberid, lead)
 VALUES
     ('f84a21ca-1579-4c6a-8148-6a355518797a', 'e8f052a8-40b5-4fb4-9bab-8b16ed36adc7', '2c1b77e2-e2fc-46d1-92f2-beabbd28ee3d', true);
 
 INSERT INTO team_member
-    (id, teamid, memberid, lead)
+    (id, team_id, memberid, lead)
 VALUES
     ('122ca588-bf61-4aea-bb6e-39838328bf85', 'a8733740-cf4c-4c16-a8cf-4f928c409acc', 'b2d35288-7f1e-4549-aa2b-68396b162490', true);
 
 INSERT INTO team_member
-    (id, teamid, memberid, lead)
+    (id, team_id, memberid, lead)
 VALUES
     ('adff5631-d4dc-4c61-b3d4-232d1cce8ce0', 'a8733740-cf4c-4c16-a8cf-4f928c409acc', '1b4f99da-ef70-4a76-9b37-8bb783b749ad', false);
 
