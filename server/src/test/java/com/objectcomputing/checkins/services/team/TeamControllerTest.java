@@ -22,6 +22,7 @@ import javax.inject.Inject;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.objectcomputing.checkins.services.role.RoleType.Constants.ADMIN_ROLE;
 import static com.objectcomputing.checkins.services.role.RoleType.Constants.MEMBER_ROLE;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -202,10 +203,12 @@ class TeamControllerTest extends TestContainersSuite implements TeamFixture, Mem
 
     @Test
     void testFindAllTeams() {
+        // create members
+        MemberProfile memberProfileOfAdmin = createAnUnrelatedUser();
 
         Team team = createDefultTeam();
 
-        final HttpRequest<?> request = HttpRequest.GET(String.format("/")).basicAuth(MEMBER_ROLE, MEMBER_ROLE);
+        final HttpRequest<?> request = HttpRequest.GET(String.format("/")).basicAuth(memberProfileOfAdmin.getWorkEmail(), ADMIN_ROLE);
         final HttpResponse<Set<TeamResponseDTO>> response = client.toBlocking().exchange(request, Argument.setOf(TeamResponseDTO.class));
 
         assertEquals(Set.of(fromEntity(team)), response.body());
@@ -213,14 +216,13 @@ class TeamControllerTest extends TestContainersSuite implements TeamFixture, Mem
 
     }
 
-
-
     @Test
     void testFindByName() {
-
+        // create members
+        MemberProfile memberProfileOfAdmin = createAnUnrelatedUser();
         Team team = createDefultTeam() ;
 
-        final HttpRequest<?> request = HttpRequest.GET(String.format("/?name=%s", team.getName())).basicAuth(MEMBER_ROLE, MEMBER_ROLE);
+        final HttpRequest<?> request = HttpRequest.GET(String.format("/?name=%s", team.getName())).basicAuth(memberProfileOfAdmin.getWorkEmail(), MEMBER_ROLE);
         final HttpResponse<Set<Team>> response = client.toBlocking().exchange(request, Argument.setOf(Team.class));
 
         assertEquals(Set.of(team), response.body());
@@ -230,12 +232,14 @@ class TeamControllerTest extends TestContainersSuite implements TeamFixture, Mem
 
     @Test
     void testFindByMemberId() {
+        // create members
+        MemberProfile memberProfileOfAdmin = createAnUnrelatedUser();
         MemberProfile memberProfile = createADefaultMemberProfile();
         Team team = createDefultTeam();
 
         TeamMember teamMember = createDeafultTeamMember(team,memberProfile);
 
-        final HttpRequest<?> request = HttpRequest.GET(String.format("/?memberid=%s", teamMember.getMemberid())).basicAuth(MEMBER_ROLE, MEMBER_ROLE);
+        final HttpRequest<?> request = HttpRequest.GET(String.format("/?memberid=%s", teamMember.getMemberid())).basicAuth(memberProfileOfAdmin.getWorkEmail(), MEMBER_ROLE);
         final HttpResponse<Set<Team>> response = client.toBlocking().exchange(request, Argument.setOf(Team.class));
 
         assertEquals(Set.of(team), response.body());
@@ -251,7 +255,7 @@ class TeamControllerTest extends TestContainersSuite implements TeamFixture, Mem
         TeamMember teamMember = createDeafultTeamMember(team,memberProfile);
 
         final HttpRequest<?> request = HttpRequest.GET(String.format("/?name=%s&memberid=%s", team.getName(),
-                teamMember.getMemberid())).basicAuth(MEMBER_ROLE, MEMBER_ROLE);
+                teamMember.getMemberid())).basicAuth(memberProfile.getWorkEmail(), MEMBER_ROLE);
         final HttpResponse<Set<Team>> response = client.toBlocking().exchange(request, Argument.setOf(Team.class));
 
         assertEquals(Set.of(team), response.body());
@@ -269,7 +273,7 @@ class TeamControllerTest extends TestContainersSuite implements TeamFixture, Mem
 
         TeamUpdateDTO team = makeDefaultTeamUpdateDTO(savedTeam.getId(), List.of(profile1, profile2, profile3));
 
-        final HttpRequest<TeamUpdateDTO> request = HttpRequest.PUT("/", team).basicAuth(MEMBER_ROLE, MEMBER_ROLE);
+        final HttpRequest<TeamUpdateDTO> request = HttpRequest.PUT("/", team).basicAuth(profile1.getWorkEmail(), MEMBER_ROLE);
         final HttpResponse<Team> response = client.toBlocking().exchange(request, Team.class);
 
         assertEquals(team.getName(), response.body().getName());
@@ -337,4 +341,74 @@ class TeamControllerTest extends TestContainersSuite implements TeamFixture, Mem
 
     }
 
+    @Test
+    void deleteTeamByMember() {
+        // setup team
+        Team team = createDefultTeam();
+        // create members
+        MemberProfile memberProfileofTeamLead = createADefaultMemberProfile();
+        MemberProfile memberProfileOfTeamMember = createADefaultMemberProfileForPdl(memberProfileofTeamLead);
+        //add members to team
+        createLeadTeamMember(team, memberProfileofTeamLead);
+        createDeafultTeamMember(team, memberProfileOfTeamMember);
+
+        final MutableHttpRequest<?> request =  HttpRequest.DELETE(String.format("/%s", team.getId())).basicAuth(memberProfileOfTeamMember.getWorkEmail(), MEMBER_ROLE);
+        HttpClientResponseException responseException = assertThrows(HttpClientResponseException.class,
+        () -> client.toBlocking().exchange(request, Map.class));
+
+        JsonNode body = responseException.getResponse().getBody(JsonNode.class).orElse(null);
+        JsonNode errors = Objects.requireNonNull(body).get("message");
+        assertEquals("You are not authorized to perform this operation", errors.asText());
+        assertEquals(HttpStatus.BAD_REQUEST, responseException.getStatus());
+    }
+
+    @Test
+    void deleteTeamByAdmin() {
+        // setup team
+        Team team = createDefultTeam();
+        // create members
+        MemberProfile memberProfileOfAdmin = createAnUnrelatedUser();
+        //add members to team
+        createDeafultTeamMember(team, memberProfileOfAdmin);
+
+        final MutableHttpRequest<?> request =  HttpRequest.DELETE(String.format("/%s", team.getId())).basicAuth(memberProfileOfAdmin.getWorkEmail(), ADMIN_ROLE);
+        final HttpResponse<Team> response = client.toBlocking().exchange(request);
+
+        assertEquals(HttpStatus.OK, response.getStatus());
+    }
+
+    @Test
+    void deleteTeamByTeamLead() {
+        // setup team
+        Team team = createDefultTeam();
+        // create members
+        MemberProfile memberProfileofTeamLead = createADefaultMemberProfile();
+        //add members to team
+        createLeadTeamMember(team, memberProfileofTeamLead);
+        // createDeafultTeamMember(team, memberProfileOfTeamMember);
+
+        final MutableHttpRequest<?> request =  HttpRequest.DELETE(String.format("/%s", team.getId())).basicAuth(memberProfileofTeamLead.getWorkEmail(), MEMBER_ROLE);
+        final HttpResponse<Team> response = client.toBlocking().exchange(request);
+
+        assertEquals(HttpStatus.OK, response.getStatus());
+    }
+
+    @Test
+    void deleteTeamByUnrelatedUser() {
+        // setup team
+        Team team = createDefultTeam();
+        // create members
+        MemberProfile user = createAnUnrelatedUser();
+
+        final MutableHttpRequest<?> request = HttpRequest.DELETE(String.format("/%s", team.getId())).basicAuth(user.getWorkEmail(), MEMBER_ROLE);
+
+        //throw error
+        HttpClientResponseException responseException = assertThrows(HttpClientResponseException.class,
+        () -> client.toBlocking().exchange(request, Map.class));
+
+        JsonNode body = responseException.getResponse().getBody(JsonNode.class).orElse(null);
+        JsonNode errors = Objects.requireNonNull(body).get("message");
+        assertEquals("You are not authorized to perform this operation", errors.asText());
+        assertEquals(HttpStatus.BAD_REQUEST, responseException.getStatus());
+    }
 }

@@ -148,6 +148,18 @@ public class TeamController {
 
     }
 
+    /**
+     * Delete Team
+     *
+     * @param id, id of {@link Team} to delete
+     */
+    @Delete("/{id}")
+    public HttpResponse<?> deleteTeam(@NotNull UUID id) {
+        teamService.delete(id);
+        return HttpResponse
+                .ok();
+    }
+
     private Team toTeamEntityFromUpdateDTO(TeamUpdateDTO dto) {
         Team entity = new Team(dto.getId(), dto.getName(), dto.getDescription());
         List<TeamMember> entityMembers = new ArrayList<>();
@@ -177,5 +189,4 @@ public class TeamController {
         }
         return dto;
     }
-
 }

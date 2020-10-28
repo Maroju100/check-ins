@@ -1,9 +1,15 @@
 package com.objectcomputing.checkins.services.team;
 
+import com.objectcomputing.checkins.services.memberprofile.MemberProfile;
+import com.objectcomputing.checkins.services.memberprofile.currentuser.CurrentUserServices;
+import com.objectcomputing.checkins.services.role.RoleType;
 import com.objectcomputing.checkins.services.team.member.TeamMember;
 import com.objectcomputing.checkins.services.team.member.TeamMemberRepository;
+import com.objectcomputing.checkins.services.team.member.TeamMemberServices;
+import io.micronaut.security.utils.SecurityService;
 
 import javax.inject.Singleton;
+import javax.validation.constraints.NotNull;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -14,11 +20,18 @@ public class TeamServicesImpl implements TeamServices {
 
     private final TeamRepository teamsRepo;
     private final TeamMemberRepository teamMemberRepository;
-
-    public TeamServicesImpl(TeamRepository teamsRepo,
-                            TeamMemberRepository teamMemberRepository) {
+    private final SecurityService securityService;
+    private final CurrentUserServices currentUserServices;
+    private final TeamMemberServices teamMemberServices;
+    
+    public TeamServicesImpl(TeamRepository teamsRepo, TeamMemberRepository teamMemberRepo,
+                            SecurityService securityService, CurrentUserServices currentUserServices,
+                            TeamMemberServices teamMemberServices) {
         this.teamsRepo = teamsRepo;
-        this.teamMemberRepository = teamMemberRepository;
+        this.teamMemberRepository = teamMemberRepo;
+        this.securityService = securityService;
+        this.currentUserServices = currentUserServices;
+        this.teamMemberServices = teamMemberServices;
     }
 
     public Team save(Team team) {
@@ -77,5 +90,20 @@ public class TeamServicesImpl implements TeamServices {
     public Set<Team> findByFields(String name, UUID memberid) {
         return new HashSet<>(
                 teamsRepo.search(name, nullSafeUUIDToString(memberid)));
+    }
+
+    public void delete(@NotNull UUID id) {
+        String workEmail = securityService!=null ? securityService.getAuthentication().get().getAttributes().get("email").toString() : null;
+        MemberProfile currentUser = workEmail!=null? currentUserServices.findOrSaveUser(null, workEmail) : null;
+        Boolean isAdmin = securityService!=null ? securityService.hasRole(RoleType.Constants.ADMIN_ROLE) : false;
+
+        Team team = teamsRepo.findById(id).get();
+
+        Set<TeamMember> CurrentTeam = teamMemberServices.findByFields(team.getId(), currentUser.getId(), true);
+        if(isAdmin || !CurrentTeam.isEmpty()) {
+            teamsRepo.deleteById(id);
+        } else {
+            throw new TeamBadArgException("You are not authorized to perform this operation");
+        }
     }
 }
