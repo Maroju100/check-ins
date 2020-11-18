@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
-import React, { /*useContext,*/ useState } from "react";
+import React, { useContext, useState } from "react";
+import { AppContext, UPDATE_SELECTED_PROFILE } from "../../context/AppContext";
 import AppBar from "@material-ui/core/AppBar";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import Drawer from "@material-ui/core/Drawer";
@@ -16,7 +17,6 @@ import Paper from "@material-ui/core/Paper";
 import Popper from "@material-ui/core/Popper";
 import ClickAwayListener from "@material-ui/core/ClickAwayListener";
 import Grow from "@material-ui/core/Grow";
-//import { AppContext } from "../../context/AppContext";
 
 import "./Menu.css";
 
@@ -33,7 +33,7 @@ const useStyles = makeStyles((theme) => ({
     },
   },
   appBar: {
-    backgroundColor: "#255aa8",
+    backgroundColor: "#e4e3e4",
     [theme.breakpoints.up("sm")]: {
       width: `calc(100% - ${drawerWidth}px)`,
       marginLeft: drawerWidth,
@@ -49,6 +49,7 @@ const useStyles = makeStyles((theme) => ({
   // toolbar: theme.mixins.toolbar,
   drawerPaper: {
     width: drawerWidth,
+    backgroundColor: "#a5a4a8",
   },
   content: {
     flexGrow: 1,
@@ -57,10 +58,12 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 function Menu() {
-  //const { state } = useContext(AppContext);
-  //const { userProfile } = state;
-
-  //const isAdmin = userProfile.role === "ADMIN";
+  const { dispatch } = useContext(AppContext);
+  const { state } = useContext(AppContext);
+  const { userProfile } = state;
+  const { imageUrl } = userProfile
+      ? userProfile
+      : {};
   const classes = useStyles();
   const theme = useTheme();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -93,33 +96,49 @@ function Menu() {
     setMobileOpen(!mobileOpen);
   };
 
-  const linkStyle = { textDecoration: "none" };
+  const linkStyle = { textDecoration: "none", color: "white" };
 
   const drawer = (
     <div>
       <div className={classes.toolbar} />
-      <h3 className="checkin">Check in!</h3>
-      <Button>
+      <div style={{ display: "flex", justifyContent: "center" }}>
+        <img
+          alt="Object Computing, Inc."
+          src="/img/ocicube-white.png"
+          style={{ width: "50%" }}
+        />
+      </div>
+      <br />
+      <Button size="large" style={{ width: "100%" }}>
         <Link style={linkStyle} to="/">
           Home
         </Link>
       </Button>
       <br />
-      <Button>
-        <Link style={linkStyle} to="/resources">
-          Resources
+      <Button size="large" style={{ width: "100%" }}>
+        <Link style={linkStyle} to="/teams">
+          Teams
         </Link>
       </Button>
       <br />
-      <Button>
-        <Link style={linkStyle} to="/team">
-          Team
-        </Link>
-      </Button>
-      <br />
-      <Button>
+      <Button
+        onClick={() =>
+          dispatch({
+            type: UPDATE_SELECTED_PROFILE,
+            payload: undefined,
+          })
+        }
+        size="large"
+        style={{ width: "100%" }}
+      >
         <Link style={linkStyle} to="/checkins">
           Check-ins
+        </Link>
+      </Button>
+      <br />
+      <Button size="large" style={{ width: "100%" }}>
+        <Link style={linkStyle} to="/directory">
+          Directory
         </Link>
       </Button>
       <br />
@@ -154,7 +173,11 @@ function Menu() {
           aria-haspopup="true"
           onClick={handleToggle}
         >
-          <AvatarComponent />
+          <AvatarComponent imageUrl={imageUrl} style={{
+              position: "absolute",
+              right: "5px",
+              top: "10px",
+          }} />
         </div>
         <Popper
           open={open}

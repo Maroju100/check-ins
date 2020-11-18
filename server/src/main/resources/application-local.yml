@@ -18,8 +18,7 @@ micronaut:
             expiration: 60000
           secret: ihaveChangedThisSecretForANewOne
     intercept-url-map:
-      -
-        pattern: /swagger-ui/**
+      - pattern: /swagger-ui/**
         http-method: GET
         access:
           - isAnonymous()
@@ -42,3 +41,11 @@ credentials:
       - PDL
     MEMBER:
       - MEMBER
+---
+flyway:
+  enabled: enabled
+  datasources:
+    default:
+      locations:
+        - "classpath:db/common"
+        - "classpath:db/dev"

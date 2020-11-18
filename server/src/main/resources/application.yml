@@ -7,6 +7,9 @@ micronaut:
     max-request-size: 100MB
     multipart:
       max-file-size: 100MB
+  caches:
+    photo-cache:
+      expire-after-write: 1200
 
   router:
     static-resources:
@@ -50,7 +53,11 @@ micronaut:
       forbidden:
         url: /forbidden
     session:
-      enabled: true 
+      enabled: true
+    netty:
+      event-loops:
+        io:
+          num-threads: 4 #Matching number in database thread pool as that is currently our only use of I/O
 ---
 datasources:
   default:
@@ -63,11 +70,34 @@ datasources:
 check-ins:
   application:
     name: "OCI Check-ins"
-    scopes:
-      - "https://www.googleapis.com/auth/drive.file"
+    google-api:
+      delegated-user: ${ GSUITE_SUPER_ADMIN }
+      scopes:
+        scopeForDriveApi: "https://www.googleapis.com/auth/drive.file"
+        scopeForDirectoryApi: "https://www.googleapis.com/auth/admin.directory.user.readonly"
 ---
 flyway:
   enabled: enabled
   datasources:
     default:
       locations: classpath:db
+---
+service-account-credentials:
+  directory_id: ${ DIRECTORY_ID }
+  type: ${ TYPE }
+  project_id: ${ PROJECT_ID }
+  private_key_id: ${ PRIVATE_KEY_ID }
+  private_key: ${ PRIVATE_KEY }
+  client_email: ${ CLIENT_EMAIL }
+  client_id: ${ CLIENT_ID }
+  auth_uri: ${ AUTH_URI }
+  token_uri: ${ TOKEN_URI }
+  auth_provider_x509_cert_url: ${ AUTH_PROVIDER_X509_CERT_URL }
+  client_x509_cert_url: ${ CLIENT_X509_CERT_URL }
+  oauth_client_id: ${ OAUTH_CLIENT_ID }
+  oauth_client_secret: ${ OAUTH_CLIENT_SECRET }
+---
+ehcache:
+  caches:
+    photo-cache:
+      enabled: true

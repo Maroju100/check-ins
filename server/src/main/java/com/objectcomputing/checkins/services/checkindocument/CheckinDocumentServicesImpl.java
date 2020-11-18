@@ -2,20 +2,24 @@ package com.objectcomputing.checkins.services.checkindocument;
 
 import com.objectcomputing.checkins.services.checkins.CheckInRepository;
 
-import javax.inject.Inject;
+import javax.inject.Singleton;
 import javax.validation.constraints.NotNull;
-
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+@Singleton
 public class CheckinDocumentServicesImpl implements CheckinDocumentServices {
 
-    @Inject
-    private CheckinDocumentRepository checkinDocumentRepo;
+    private final CheckinDocumentRepository checkinDocumentRepo;
+    private final CheckInRepository checkinRepo;
 
-    @Inject
-    private CheckInRepository checkinRepo;
+    public CheckinDocumentServicesImpl(CheckinDocumentRepository checkinDocumentRepo,
+                                       CheckInRepository checkinRepo) {
+        this.checkinDocumentRepo = checkinDocumentRepo;
+        this.checkinRepo = checkinRepo;
+    }
 
     public Set<CheckinDocument> read(UUID checkinsId) {
 
@@ -25,6 +29,14 @@ public class CheckinDocumentServicesImpl implements CheckinDocumentServices {
             checkinDocument = checkinDocumentRepo.findByCheckinsId(checkinsId);
         }
         return checkinDocument;
+    }
+
+    public CheckinDocument getFindByUploadDocId(@NotNull String uploadDocId) {
+        Optional<CheckinDocument> cd = checkinDocumentRepo.findByUploadDocId(uploadDocId);
+        if(cd.isEmpty()) {
+            throw new CheckinDocumentBadArgException(String.format("CheckinDocument with document id %s does not exist", uploadDocId));
+        }
+        return cd.get();
     }
 
     public CheckinDocument save(CheckinDocument checkinDocument) {
@@ -68,12 +80,21 @@ public class CheckinDocumentServicesImpl implements CheckinDocumentServices {
         return updatedCheckinDocument;
     }
 
-    public void delete(@NotNull UUID checkinsId) {
+    public void deleteByCheckinId(@NotNull UUID checkinsId) {
 
         if(!checkinDocumentRepo.existsByCheckinsId(checkinsId)) {
             throw new CheckinDocumentBadArgException(String.format("CheckinDocument with CheckinsId %s does not exist", checkinsId));
         } else {
             checkinDocumentRepo.deleteByCheckinsId(checkinsId);
+        }
+    }
+
+    public void deleteByUploadDocId(@NotNull String uploadDocId) {
+
+        if(!checkinDocumentRepo.existsByUploadDocId(uploadDocId)) {
+            throw new CheckinDocumentBadArgException(String.format("CheckinDocument with uploadDocId %s does not exist", uploadDocId));
+        } else {
+            checkinDocumentRepo.deleteByUploadDocId(uploadDocId);
         }
     }
 }

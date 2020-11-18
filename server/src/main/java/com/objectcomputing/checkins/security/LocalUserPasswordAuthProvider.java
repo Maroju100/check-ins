@@ -5,7 +5,6 @@ import com.objectcomputing.checkins.services.memberprofile.currentuser.CurrentUs
 import com.objectcomputing.checkins.services.role.Role;
 import com.objectcomputing.checkins.services.role.RoleRepository;
 import com.objectcomputing.checkins.services.role.RoleType;
-import io.micronaut.context.annotation.Replaces;
 import io.micronaut.context.annotation.Requires;
 import io.micronaut.core.util.StringUtils;
 import io.micronaut.http.HttpRequest;
@@ -14,22 +13,25 @@ import io.reactivex.Flowable;
 import org.reactivestreams.Publisher;
 
 import javax.annotation.Nullable;
-import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Singleton
 @Requires(env = "local")
-@Replaces(UserPasswordAuthProvider.class)
 public class LocalUserPasswordAuthProvider implements AuthenticationProvider {
 
-    @Inject
-    private CurrentUserServices currentUserServices;
+    private final CurrentUserServices currentUserServices;
+    private final RoleRepository roleRepository;
+    private final UsersStore usersStore;
 
-    @Inject
-    private RoleRepository roleRepository;
-
-    @Inject
-    UsersStore usersStore;
+    public LocalUserPasswordAuthProvider(CurrentUserServices currentUserServices,
+                                         RoleRepository roleRepository,
+                                         UsersStore usersStore) {
+        this.currentUserServices = currentUserServices;
+        this.roleRepository = roleRepository;
+        this.usersStore = usersStore;
+    }
 
     @Override
     public Publisher<AuthenticationResponse> authenticate(@Nullable HttpRequest<?> httpRequest, AuthenticationRequest<?, ?> authReq) {

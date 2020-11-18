@@ -18,7 +18,16 @@ credentials:
       - MEMBER
     ADMIN:
       - ADMIN
+      - MEMBER
     PDL:
       - PDL
+      - MEMBER
     MEMBER:
       - MEMBER
+---
+flyway:
+  enabled: enabled
+  datasources:
+    default:
+      locations:
+        - "classpath:db/common"

@@ -6,7 +6,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Past;
 import java.time.LocalDate;
 import java.util.UUID;
 
@@ -17,13 +16,13 @@ public class MemberProfileResponseDTO {
     @Schema(description = "id of the member profile this entry is associated with", required = true)
     private UUID id;
 
-    @NotBlank
-    @Schema(description = "full name of the employee", required = true)
+    @Nullable
+    @Schema(description = "full name of the employee")
     private String name;
 
     @NotBlank
-    @Schema(description = "employee's role at the company", required = true)
-    private String role ;
+    @Schema(description = "employee's title at the company", required = true)
+    private String title ;
 
     @Nullable
     @Schema(description = "employee's professional development lead")
@@ -42,7 +41,6 @@ public class MemberProfileResponseDTO {
     private String insperityId;
 
     @NotNull
-    @Past
     @Schema(description = "employee's date of hire", required = true)
     private LocalDate startDate;
 
@@ -58,20 +56,21 @@ public class MemberProfileResponseDTO {
         this.id = id;
     }
 
+    @Nullable
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
+    public void setName(@Nullable String name) {
         this.name = name;
     }
 
-    public String getRole() {
-        return role;
+    public String getTitle() {
+        return title;
     }
 
-    public void setRole(String role) {
-        this.role = role;
+    public void setTitle(String title) {
+        this.title = title;
     }
 
     @Nullable

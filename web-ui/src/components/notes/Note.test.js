@@ -13,14 +13,14 @@ const initialState = {
   state: {
     userProfile: {
       name: "holmes",
+      memberProfile: {
+        pdlId: "",
+        title: "Tester",
+        workEmail: "test@tester.com",
+      },
       role: ["MEMBER"],
       imageUrl:
         "https://upload.wikimedia.org/wikipedia/commons/7/74/SNL_MrBill_Doll.jpg",
-      memberProfile: {
-        uuid: "2lkjl12jk34;1l",
-        name: "holmes",
-        workEmail: "holmes@oci.com",
-      },
     },
   },
 };
@@ -28,7 +28,10 @@ const initialState = {
 it("renders correctly", () => {
   snapshot(
     <AppContextProvider value={initialState}>
-      <Notes checkin={checkin} memberName={initialState.state.userProfile.name} />
+      <Notes
+        checkin={checkin}
+        memberName={initialState.state.userProfile.name}
+      />
     </AppContextProvider>
   );
 });

@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import EditIcon from "@material-ui/icons/Edit";
 import Button from "@material-ui/core/Button";
 import CancelIcon from "@material-ui/icons/Cancel";
@@ -21,7 +21,7 @@ const Profile = () => {
   const { imageUrl } = userProfile ? userProfile : {};
 
   const [mySkills, setMySkills] = useState([]);
-  const { bioText, workEmail, name, role, id, pdlId } =
+  const { bioText, workEmail, name, title, id, pdlId } =
     userProfile && userProfile.memberProfile ? userProfile.memberProfile : {};
 
   const [pdl, setPDL] = useState();
@@ -31,7 +31,7 @@ const Profile = () => {
   const [skillsList, setSkillsList] = useState([]);
 
   // Get skills list
-  React.useEffect(() => {
+  useEffect(() => {
     async function updateSkillsList() {
       let res = await getSkills();
       setSkillsList(res.payload && res.payload.data ? res.payload.data : []);
@@ -39,7 +39,7 @@ const Profile = () => {
     updateSkillsList();
   }, []);
 
-  React.useEffect(() => {
+  useEffect(() => {
     async function updateBio() {
       setBio(bioText);
     }
@@ -47,7 +47,7 @@ const Profile = () => {
   }, [bioText]);
 
   // Get PDL's name
-  React.useEffect(() => {
+  useEffect(() => {
     async function getPDLName() {
       if (pdlId) {
         let res = await getMember(pdlId);
@@ -59,7 +59,7 @@ const Profile = () => {
     getPDLName();
   }, [pdlId]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     async function updateMySkills() {
       let updatedMySkills = {};
       if (id) {
@@ -147,7 +147,7 @@ const Profile = () => {
   };
 
   return (
-    <div>
+    <div className="Profile">
       <div className="flex-row" style={{ marginTop: "20px" }}>
         <div className="profile-image">
           <Avatar
@@ -190,8 +190,8 @@ const Profile = () => {
               )}
             </h2>
             <div>
-              <span>Role: </span>
-              {role}
+              <span>Job Title: </span>
+              {title}
             </div>
             <div>
               <span>Email: </span>
@@ -201,12 +201,15 @@ const Profile = () => {
               <span>PDL: </span>
               {pdl}
             </div>
-            <textarea
-              disabled={disabled}
-              id="Bio"
-              onChange={(e) => setBio(e.target.value)}
-              value={bio}
-            ></textarea>
+            <div>
+              <span>Bio</span>
+              <textarea
+                disabled={disabled}
+                id="Bio"
+                onChange={(e) => setBio(e.target.value)}
+                value={bio}
+              ></textarea>
+            </div>
           </div>
         </div>
       </div>

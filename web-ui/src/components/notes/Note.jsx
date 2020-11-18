@@ -1,77 +1,107 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
-import { getNoteByCheckinId, updateCheckinNote } from "../../api/checkins";
-import useDebounce from "../../hooks/useDebounce";
+
+import {
+  getNoteByCheckinId,
+  createCheckinNote,
+  updateCheckinNote,
+} from "../../api/checkins";
+import { AppContext } from "../../context/AppContext";
+
+import { debounce } from "lodash/function";
 import NotesIcon from "@material-ui/icons/Notes";
 import LockIcon from "@material-ui/icons/Lock";
-import { AppContext } from "../../context/AppContext";
+import Skeleton from "@material-ui/lab/Skeleton";
 
 import "./Note.css";
 
+async function realUpdate(note) {
+  await updateCheckinNote(note);
+}
+
+const updateNote = debounce(realUpdate, 1000);
+
 const Notes = (props) => {
   const { state } = useContext(AppContext);
-  const { userProfile } = state;
-  const canViewPrivateNote =
-    userProfile.role.includes("PDL") || userProfile.role.includes("ADMIN");
-  const { checkin, memberName } = props;
-  const { id } = checkin;
+  const noteRef = useRef([]);
+  const { userProfile, currentCheckin, selectedProfile } = state;
+  const { memberProfile } = userProfile;
+  const { id } = memberProfile;
+  const { memberName } = props;
   const [note, setNote] = useState({});
-  // TODO: get private note and determine if user is PDL
+  const [isLoading, setIsLoading] = useState(true);
+  // TODO: get private note
   const [privateNote, setPrivateNote] = useState("Private note");
+  const selectedProfilePDLId = selectedProfile && selectedProfile.pdlId;
+  const pdlId = memberProfile && memberProfile.pdlId;
+  const pdlorAdmin =
+    (memberProfile && userProfile.role && userProfile.role.includes("PDL")) ||
+    userProfile.role.includes("ADMIN");
 
-  const canvasRef = useRef();
-
-  // to draw empty sections when loading
-  useEffect(() => {
-    const context = canvasRef.current.getContext("2d");
-    context.fillStyle = "lightgrey";
-    for (let i = 1; i < 5; i++) {
-      context.fillRect(5, 15 * i, 500, 10);
-    }
-  }, []);
+  const canViewPrivateNote =
+    pdlorAdmin && memberProfile.id !== currentCheckin.teamMemberId;
+  const currentCheckinId = currentCheckin && currentCheckin.id;
 
   useEffect(() => {
     async function getNotes() {
-      if (id) {
-        let res = await getNoteByCheckinId(id);
-        let data =
-          res.payload &&
-          res.payload.data &&
-          res.payload.status === 200 &&
-          !res.error
-            ? res.payload.data
+      if (!pdlId) {
+        return;
+      }
+      setIsLoading(true);
+      try {
+        let res = await getNoteByCheckinId(currentCheckinId);
+        if (res.error) throw new Error(res.error);
+
+        const currentNote =
+          res.payload && res.payload.data && res.payload.data.length > 0
+            ? res.payload.data[0]
             : null;
-        if (data) {
-          setNote(data[0]);
-          const canvas = canvasRef.current;
-          if (canvas && data[0].description) {
-            // to remove canvas if there is data
-            canvas.parentElement.removeChild(canvas);
+        if (currentNote) {
+          setNote(currentNote);
+        } else if (id === selectedProfilePDLId) {
+          if (!noteRef.current.some((id) => id === currentCheckinId)) {
+            noteRef.current.push(currentCheckinId);
+            res = await createCheckinNote({
+              checkinid: currentCheckinId,
+              createdbyid: id,
+              description: "",
+            });
+            noteRef.current = noteRef.current.filter(
+              (id) => id !== currentCheckinId
+            );
+            if (res.error) throw new Error(res.error);
+            if (res && res.payload && res.payload.data) {
+              setNote(res.payload.data);
+            }
+          }
+        } else if (pdlorAdmin) {
+          res = await createCheckinNote({
+            checkinid: currentCheckinId,
+            createdbyid: id,
+            description: "",
+          });
+          if (res.error) throw new Error(res.error);
+          if (res && res.payload && res.payload.data) {
+            setNote(res.payload.data);
           }
         }
+      } catch (e) {
+        console.log(e);
       }
+      setIsLoading(false);
     }
     getNotes();
-  }, [id]);
-
-  let debouncedDescription = useDebounce(note.description, 2000);
-
-  useEffect(() => {
-    async function updateNotes() {
-      if (note.id) {
-        let res = await updateCheckinNote({
-          ...note,
-          description: debouncedDescription,
-        });
-        if (res.error) {
-          console.error(res.error);
-        }
-      }
-    }
-    updateNotes();
-  }, [debouncedDescription, note, note.id]);
+  }, [currentCheckinId, pdlId, id, selectedProfilePDLId, pdlorAdmin]);
 
   const handleNoteChange = (e) => {
-    setNote({ ...note, description: e.target.value });
+    if (Object.keys(note) === 0) {
+      return;
+    }
+    const { value } = e.target;
+    setNote((note) => {
+      const newNote = { ...note, description: value };
+      updateNote(newNote);
+      return newNote;
+    });
   };
 
   const handlePrivateNoteChange = (e) => {
@@ -81,16 +111,31 @@ const Notes = (props) => {
   return (
     <div className="notes">
       <div>
-        <h1>
-          <NotesIcon style={{ marginRight: "10px" }} />
-          Notes for {memberName}
-        </h1>
-        <div className="container">
-          <textarea
-            onChange={handleNoteChange}
-            value={note.description}
-          ></textarea>
-          <canvas ref={canvasRef}></canvas>
+        <div>
+          <h1>
+            <NotesIcon style={{ marginRight: "10px" }} />
+            Notes for {memberName}
+          </h1>
+          <div className="container">
+            {isLoading ? (
+              <div className="skeleton">
+                <Skeleton variant="text" height={"2rem"} />
+                <Skeleton variant="text" height={"2rem"} />
+                <Skeleton variant="text" height={"2rem"} />
+                <Skeleton variant="text" height={"2rem"} />
+              </div>
+            ) : (
+              <textarea
+                disabled={
+                  !pdlorAdmin ||
+                  currentCheckin.completed === true ||
+                  Object.keys(note) === 0
+                }
+                onChange={handleNoteChange}
+                value={note && note.description ? note.description : ""}
+              ></textarea>
+            )}
+          </div>
         </div>
       </div>
       {canViewPrivateNote && (

@@ -51,7 +51,6 @@ public class LocalLoginController {
         this.currentUserServices = currentUserServices;
     }
 
-
     @View("login")
     @Get
     public Map<String, String> login() {
@@ -69,7 +68,8 @@ public class LocalLoginController {
             if (authenticationResponse.isAuthenticated() && authenticationResponse.getUserDetails().isPresent()) {
                 UserDetails userDetails = authenticationResponse.getUserDetails().get();
                 MemberProfile memberProfile = currentUserServices.findOrSaveUser(email, email);
-                userDetails.setAttributes(Map.of("email", memberProfile.getWorkEmail(), "name", memberProfile.getName(),
+                String name = memberProfile.getName() != null ? memberProfile.getName() : "";
+                userDetails.setAttributes(Map.of("email", memberProfile.getWorkEmail(), "name", name,
                         "picture", ""));
                 eventPublisher.publishEvent(new LoginSuccessfulEvent(userDetails));
                 return loginHandler.loginSuccess(userDetails, request);

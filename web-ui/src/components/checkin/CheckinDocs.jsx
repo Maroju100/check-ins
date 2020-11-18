@@ -1,32 +1,59 @@
-import React, { useState } from "react";
-import Snackbar from "@material-ui/core/Snackbar";
-import MuiAlert from "@material-ui/lab/Alert";
-import DescriptionIcon from "@material-ui/icons/Description";
+import React, { useContext, useEffect, useState } from "react";
 import FileUploader from "./FileUploader";
+import {
+  getFiles,
+  // getAllFiles,
+  deleteFile,
+  uploadFile,
+} from "../../api/upload";
+import { AppContext, UPDATE_TOAST } from "../../context/AppContext";
+
+import DescriptionIcon from "@material-ui/icons/Description";
 import Button from "@material-ui/core/Button";
 import { CircularProgress } from "@material-ui/core";
-import { uploadFile } from "../../api/upload";
 
 import "./Checkin.css";
 
-function Alert(props) {
-  return <MuiAlert elevation={6} variant="filled" {...props} />;
-}
-
 const UploadDocs = () => {
-  const [responseText, setResponseText] = useState("");
-  const [severity, setSeverity] = useState("");
-  const [open, setOpen] = useState(false);
+  const { state, dispatch } = useContext(AppContext);
+  const { userProfile, currentCheckin } = state;
+  const { memberProfile } = userProfile;
   const [loading, setLoading] = useState(false);
   const [files, setFiles] = useState([]);
-  const [fileColor, setFileColor] = useState("");
+  const [fileColors, setFileColors] = useState({});
 
-  const handleClose = (event, reason) => {
-    if (reason === "clickaway") {
-      return;
+  const pdlorAdmin =
+    (memberProfile && userProfile.role && userProfile.role.includes("PDL")) ||
+    userProfile.role.includes("ADMIN");
+  const canView =
+    pdlorAdmin && memberProfile.id !== currentCheckin.teamMemberId;
+  const checkinId = currentCheckin && currentCheckin.id;
+
+  useEffect(() => {
+    async function getCheckinFiles() {
+      try {
+        let res = await getFiles(checkinId);
+        if (res.error) throw new Error(res.error);
+        let checkinFiles =
+          res.payload && res.payload.data && res.payload.data.length > 0
+            ? res.payload.data
+            : null;
+        if (checkinFiles) {
+          setFiles(...files, checkinFiles);
+          checkinFiles.forEach((file) => {
+            setFileColors((fileColors) => ({
+              ...fileColors,
+              [file.name]: "green",
+            }));
+          });
+        }
+      } catch (e) {
+        console.log(e);
+      }
     }
-    setOpen(false);
-  };
+    getCheckinFiles();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [checkinId]);
 
   const handleFile = (file) => {
     setFiles([...files, file]);
@@ -34,31 +61,33 @@ const UploadDocs = () => {
   };
 
   const addFile = async (file) => {
-    if (!file) {
-      //if user doesn't select a file
-      setResponseText("Please select a file before uploading.");
-      setSeverity("error");
+    let formData = new FormData();
+    formData.append("file", file);
+    if (!file || files.includes(file)) {
       setLoading(false);
-      setOpen(true);
       return;
     }
     setLoading(true);
-    let res = await uploadFile(file);
-    if (res.error) {
-      setLoading(false);
-      setSeverity("error");
-      setResponseText("Unable to upload file");
-      setOpen(true);
-      setFileColor("red");
-    } else {
-      const resJson = res.payload.data();
-      setResponseText(Object.values(resJson)[0]);
-      Object.keys(resJson)[0] === "completeMessage"
-        ? setSeverity("success") &&
-          setFileColor("green") &&
-          setResponseText("Successfully uploaded file")
-        : setSeverity("error") && setFileColor("red");
-      setOpen(true);
+    try {
+      let res = await uploadFile(formData, checkinId);
+      if (res.error) throw new Error(res.error);
+      const { data, status } = res.payload;
+      if (status !== 200) {
+        throw new Error("status equals " + status);
+      }
+      dispatch({
+        type: UPDATE_TOAST,
+        payload: {
+          severity: "success",
+          toast: `${data.name} was successfully uploaded`,
+        },
+      });
+      setFileColors((fileColors) => ({ ...fileColors, [file.name]: "green" }));
+      setFiles([...files, data]);
+    } catch (e) {
+      setFileColors((fileColors) => ({ ...fileColors, [file.name]: "red" }));
+      console.log({ e });
+    } finally {
       setLoading(false);
     }
   };
@@ -69,11 +98,13 @@ const UploadDocs = () => {
         return null;
       } else {
         return (
-          <div key={file.name} style={{ color: fileColor }}>
+          <div key={file.fileId} style={{ color: fileColors[file.name] }}>
             {file.name}
             <Button
               className="remove-file"
-              onClick={() => {
+              onClick={async () => {
+                console.log("file to delete", file);
+                await deleteFile(file.fileId);
                 setFiles(
                   files.filter((e) => {
                     return e.name !== file.name;
@@ -94,30 +125,22 @@ const UploadDocs = () => {
 
   return (
     <div className="documents">
-      <div>
-        <h1 className="title">
-          <DescriptionIcon />
-          Documents
-        </h1>
-        <div className="file-upload">
-          <div className="file-name-container">{fileMapper()}</div>
-          {loading ? (
-            <CircularProgress />
-          ) : (
-            <FileUploader handleFile={handleFile} fileRef={hiddenFileInput} />
-          )}
+      {canView && (
+        <div>
+          <h1 className="title">
+            <DescriptionIcon />
+            Documents
+          </h1>
+          <div className="file-upload">
+            <div className="file-name-container">{fileMapper()}</div>
+            {loading ? (
+              <CircularProgress />
+            ) : (
+              <FileUploader handleFile={handleFile} fileRef={hiddenFileInput} />
+            )}
+          </div>
         </div>
-        <Snackbar
-          autoHideDuration={4000}
-          open={open}
-          onClose={handleClose}
-          style={{ left: "56%", bottom: "50px" }}
-        >
-          <Alert onClose={handleClose} severity={severity}>
-            {responseText}
-          </Alert>
-        </Snackbar>
-      </div>
+      )}
     </div>
   );
 };

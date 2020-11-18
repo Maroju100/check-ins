@@ -6,7 +6,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Past;
 import java.time.LocalDate;
 import java.util.Objects;
 import java.util.UUID;
@@ -14,13 +13,13 @@ import java.util.UUID;
 @Introspected
 public class MemberProfileCreateDTO {
 
-    @NotBlank
-    @Schema(description = "full name of the employee", required = true)
+    @Nullable
+    @Schema(description = "full name of the employee")
     private String name;
 
     @NotBlank
-    @Schema(description = "employee's role at the company", required = true)
-    private String role ;
+    @Schema(description = "employee's title at the company", required = true)
+    private String title ;
 
     @Nullable
     @Schema(description = "employee's professional development lead")
@@ -39,7 +38,6 @@ public class MemberProfileCreateDTO {
     private String insperityId;
 
     @NotNull
-    @Past
     @Schema(description = "employee's date of hire", required = true)
     private LocalDate startDate;
 
@@ -47,20 +45,21 @@ public class MemberProfileCreateDTO {
     @Schema(description = "employee's biography")
     private String bioText;
 
+    @Nullable
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
+    public void setName(@Nullable String name) {
         this.name = name;
     }
 
-    public String getRole() {
-        return role;
+    public String getTitle() {
+        return title;
     }
 
-    public void setRole(String role) {
-        this.role = role;
+    public void setTitle(String title) {
+        this.title = title;
     }
 
     @Nullable
@@ -120,7 +119,7 @@ public class MemberProfileCreateDTO {
         if (o == null || getClass() != o.getClass()) return false;
         MemberProfileCreateDTO that = (MemberProfileCreateDTO) o;
         return Objects.equals(name, that.name) &&
-                Objects.equals(role, that.role) &&
+                Objects.equals(title, that.title) &&
                 Objects.equals(pdlId, that.pdlId) &&
                 Objects.equals(location, that.location) &&
                 Objects.equals(workEmail, that.workEmail) &&
@@ -131,6 +130,6 @@ public class MemberProfileCreateDTO {
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, role, pdlId, location, workEmail, insperityId, startDate, bioText);
+        return Objects.hash(name, title, pdlId, location, workEmail, insperityId, startDate, bioText);
     }
 }

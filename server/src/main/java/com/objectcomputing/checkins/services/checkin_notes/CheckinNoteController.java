@@ -9,25 +9,27 @@ import io.micronaut.http.annotation.*;
 import io.micronaut.http.hateoas.JsonError;
 import io.micronaut.http.hateoas.Link;
 import io.micronaut.security.annotation.Secured;
+import io.micronaut.security.rules.SecurityRule;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import javax.annotation.Nullable;
-import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.net.URI;
 import java.util.Set;
 import java.util.UUID;
 
-
 @Controller("/services/checkin-note")
-@Secured(RoleType.Constants.PDL_ROLE)
+@Secured(SecurityRule.IS_AUTHENTICATED)
 @Produces(MediaType.APPLICATION_JSON)
 @Tag(name = "checkin-note")
 public class CheckinNoteController {
 
-    @Inject
-    CheckinNoteServices checkinNoteServices;
+    private final CheckinNoteServices checkinNoteServices;
+
+    public CheckinNoteController(CheckinNoteServices checkinNoteServices) {
+        this.checkinNoteServices = checkinNoteServices;
+    }
 
     @Error(exception = CheckinNotesBadArgException.class)
     public HttpResponse<?> handleBadArgs(HttpRequest<?> request, CheckinNotesBadArgException e) {
@@ -46,6 +48,7 @@ public class CheckinNoteController {
      * @return
      */
     @Post("/")
+    @Secured({RoleType.Constants.PDL_ROLE, RoleType.Constants.ADMIN_ROLE})
     public HttpResponse<CheckinNote> createCheckinNote(@Body @Valid CheckinNoteCreateDTO checkinNote, HttpRequest<CheckinNoteCreateDTO> request) {
         CheckinNote newCheckinNote = checkinNoteServices.save(new CheckinNote(checkinNote.getCheckinid(), checkinNote.getCreatedbyid()
                 , checkinNote.getDescription()));
@@ -62,6 +65,7 @@ public class CheckinNoteController {
      * @return
      */
     @Put("/")
+    @Secured({RoleType.Constants.PDL_ROLE, RoleType.Constants.ADMIN_ROLE})
     public HttpResponse<CheckinNote> updateCheckinNote(@Body @Valid CheckinNote checkinNote, HttpRequest<CheckinNoteCreateDTO> request) {
         CheckinNote updateCheckinNote = checkinNoteServices.update(checkinNote);
         return HttpResponse.ok().headers(headers -> headers.location(
